@@ -1,0 +1,283 @@
+/*
+ * หน้าลูกค้าสแกน QR
+ *
+ * ออกแบบสำหรับมือถือเป็นหลัก และต้องอ่านง่ายในร้านที่แสงไม่ดี
+ * ทุกอย่างเรียบง่ายโดยตั้งใจ — ยิ่งหน้าเบา ยิ่งเปิดเร็วตอนสัญญาณอ่อน
+ */
+
+:root {
+  --bg: #fbfaf8;
+  --panel: #fff;
+  --ink: #1c1c1e;
+  --ink2: #5c5c66;
+  --line: #e3e0da;
+  --accent: #b8562f;
+  --thai: 'Noto Sans Thai', 'Sarabun', 'Leelawadee UI', 'Segoe UI', system-ui, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151517;
+    --panel: #1e1e21;
+    --ink: #eceae6;
+    --ink2: #a3a0a8;
+    --line: #33333a;
+    --accent: #e2865c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--thai);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.center {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
+}
+
+.muted {
+  color: var(--ink2);
+}
+
+.error {
+  color: var(--accent);
+  max-width: 32ch;
+}
+
+/* ── ยืนยันเลขโต๊ะ ── */
+
+.confirm__shop {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.confirm__label {
+  color: var(--ink2);
+  margin: 24px 0 0;
+}
+
+.confirm__table {
+  /* ตัวใหญ่มากโดยตั้งใจ — ต้องเห็นชัดจนไม่มีทางกดผ่านไปโดยไม่ได้อ่าน */
+  font-size: 88px;
+  font-weight: 800;
+  line-height: 1;
+  margin: 4px 0 24px;
+  color: var(--accent);
+}
+
+.confirm__hint {
+  font-size: 14px;
+  color: var(--ink2);
+  margin-top: 16px;
+  max-width: 30ch;
+}
+
+/* ── ปุ่ม ── */
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  /* 48px คือขนาดเป้าสัมผัสขั้นต่ำที่กดไม่พลาดบนมือถือ */
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── หน้าเมนู ── */
+
+.page {
+  min-height: 100dvh;
+  padding-bottom: 40vh; /* เผื่อพื้นที่ให้แถบตะกร้าด้านล่าง */
+}
+
+.page__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 16px;
+  padding-top: max(12px, env(safe-area-inset-top));
+}
+
+.page__shop {
+  font-weight: 700;
+}
+
+.page__table {
+  font-size: 14px;
+  color: var(--ink2);
+}
+
+.page__body {
+  padding: 8px 16px;
+}
+
+.cat__name {
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink2);
+  margin: 24px 0 8px;
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.item--out {
+  opacity: 0.55;
+}
+
+.item__img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.item__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.item__name {
+  font-weight: 600;
+  /* ชื่อเมนูยาวได้ ต้องตัดบรรทัดไม่ดันปุ่มตกขอบ */
+  overflow-wrap: anywhere;
+}
+
+.item__price {
+  font-size: 14px;
+  color: var(--ink2);
+}
+
+.item__out {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── แถบตะกร้า ── */
+
+.cartbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--panel);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -4px 20px #0002;
+  padding: 10px 16px;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  max-height: 45vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cartbar__lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  display: grid;
+  gap: 6px;
+}
+
+.cartbar__lines li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14.5px;
+}
+
+.cartbar__qty {
+  min-width: 22px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.cartbar__name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cartbar__sum {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink2);
+  white-space: nowrap;
+}
+
+.qty {
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.cartbar__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}

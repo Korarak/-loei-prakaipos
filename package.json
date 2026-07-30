@@ -1,0 +1,34 @@
+{
+  "name": "prakaipos",
+  "private": true,
+  "version": "0.1.0",
+  "description": "PrakaiPOS — POS ร้านอาหารเล็ก จ.เลย (PWA)",
+  "comments": {
+    "overrides.vite": "บังคับให้ทั้ง workspace ใช้ vite ชุดเดียว มิฉะนั้น vitest จะดึง vite 7 มาไว้ที่ root แล้ว type ของ plugin จะไม่ตรงกับ vite 6 ที่แอปใช้ ทำให้ typecheck ล้มด้วย TS2769"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev:pos": "npm run dev -w @prakaipos/pos",
+    "dev:order": "npm run dev -w @prakaipos/order",
+    "build": "npm run build -w @prakaipos/shared && npm run build -w @prakaipos/pos && npm run build -w @prakaipos/order",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "pb:up": "docker compose -f backend/docker-compose.yml up -d",
+    "pb:down": "docker compose -f backend/docker-compose.yml down",
+    "pb:logs": "docker compose -f backend/docker-compose.yml logs -f"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.1",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  },
+  "overrides": {
+    "vite": "^6.1.0"
+  }
+}

@@ -1,0 +1,32 @@
+# PocketBase สำหรับพัฒนาในเครื่อง
+#
+# บนเซิร์ฟเวอร์จริงก็ใช้ไฟล์เดียวกันนี้ได้ ต่างแค่วาง Cloudflare คั่นหน้า
+# และให้ pb_data อยู่บนดิสก์ที่มีการสำรองรายวัน
+#
+#   npm run pb:up     — เปิด
+#   npm run pb:logs   — ดู log
+#   npm run pb:down   — ปิด
+#
+# หน้า admin: http://127.0.0.1:8090/_/
+
+services:
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:0.22.21
+    container_name: prakaipos-pb
+    restart: unless-stopped
+    ports:
+      - '8090:8090'
+    volumes:
+      # ข้อมูลจริงทั้งหมดอยู่ในนี้ — ไฟล์ SQLite + รูปเมนู
+      # สำรอง = คัดลอกโฟลเดอร์นี้ (ดูหัวข้อ 04 ของเอกสารออกแบบ)
+      - ./pb_data:/pb_data
+      # migration รันอัตโนมัติตอนสตาร์ต ทำให้ schema ตามโค้ดเสมอ
+      - ./pb_migrations:/pb_migrations
+      # เส้นทาง API เพิ่มเติมที่เขียนเอง (เช่น เส้นทางสาธารณะของหน้าลูกค้า)
+      - ./pb_hooks:/pb_hooks
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1:8090/api/health']
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s

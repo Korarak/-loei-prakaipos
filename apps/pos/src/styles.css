@@ -1,0 +1,197 @@
+/*
+ * สไตล์พื้นฐานของหน้าขาย
+ *
+ * หลักที่ยึดจากเอกสารออกแบบหัวข้อ 12: ปุ่มใหญ่ ไม่มี dropdown
+ * กดถึงเมนูที่ต้องการใน 2 แตะ — พนักงานร้านอาหารกดตอนรีบและมือเปียก
+ */
+
+:root {
+  --bg: #fbfaf8;
+  --panel: #fff;
+  --ink: #1c1c1e;
+  --ink2: #5c5c66;
+  --line: #e3e0da;
+  --accent: #b8562f;
+  --ok: #1f6f5c;
+  --warn: #8a6d1f;
+  --thai: 'Noto Sans Thai', 'Sarabun', 'Leelawadee UI', 'Segoe UI', system-ui, sans-serif;
+
+  /* ขนาดเป้าสัมผัสขั้นต่ำ — ต่ำกว่านี้พนักงานจะกดพลาดตอนรีบ */
+  --touch: 48px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151517;
+    --panel: #1e1e21;
+    --ink: #eceae6;
+    --ink2: #a3a0a8;
+    --line: #33333a;
+    --accent: #e2865c;
+    --ok: #5fb89f;
+    --warn: #d9b45c;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--thai);
+  font-size: 16px;
+  line-height: 1.6;
+  /* กันการเลือกข้อความค้างเวลาแตะปุ่มรัวๆ */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app__bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  /* เผื่อพื้นที่ notch บน iPad รุ่นใหม่ */
+  padding-top: max(10px, env(safe-area-inset-top));
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+.app__brand {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--accent);
+}
+
+.app__main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+  padding-bottom: max(20px, env(safe-area-inset-bottom));
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px 22px;
+  max-width: 640px;
+}
+
+.panel h1 {
+  font-size: 22px;
+  margin: 0 0 6px;
+}
+
+.muted {
+  color: var(--ink2);
+  margin: 0 0 16px;
+}
+
+.warn {
+  border-left: 3px solid var(--warn);
+  background: color-mix(in srgb, var(--warn) 8%, transparent);
+  border-radius: 0 10px 10px 0;
+  padding: 10px 14px;
+  margin: 16px 0 0;
+  font-size: 14.5px;
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 18px;
+  margin: 0;
+  font-size: 15px;
+}
+
+.facts dt {
+  color: var(--ink2);
+}
+
+.facts dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+/* ── แถบสถานะการซิงก์ ── */
+
+.sync {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+
+.sync__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: currentColor;
+}
+
+.sync__detail {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+  opacity: 0.85;
+  /* ข้อความ error ยาวได้ ต้องไม่ดันแถบจนล้นจอ */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.sync--ok {
+  color: var(--ok);
+}
+
+.sync--pending {
+  color: var(--warn);
+}
+
+.sync--offline {
+  color: var(--ink2);
+}
+
+.sync--blocked {
+  color: var(--accent);
+  border-color: currentColor;
+  font-weight: 600;
+}
+
+.sync button {
+  font: inherit;
+  font-size: 13px;
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.sync button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

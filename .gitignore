@@ -1,0 +1,27 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.env
+.env.*
+!.env.example
+
+# build output
+apps/*/dist/
+packages/*/dist/
+*.tsbuildinfo
+
+# PocketBase runtime data — ห้ามขึ้น git เด็ดขาด (มีข้อมูลร้านจริง)
+backend/pb_data/
+backend/pb_public/
+
+# editors / OS
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# logs
+*.log
+npm-debug.log*
