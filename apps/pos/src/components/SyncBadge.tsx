@@ -44,16 +44,20 @@ export function SyncBadge({ state, onRetry }: { state: SyncState; onRetry: () =>
     );
   }
 
+  // คิวว่าง = ไม่มีอะไรต้องส่ง แต่ "ไม่มีอะไรต้องส่ง" ไม่ได้แปลว่า
+  // "ติดต่อเซิร์ฟเวอร์ได้" — ตอนคิวว่างเราไม่ได้ยิงหาเซิร์ฟเวอร์เลยจึงไม่รู้
+  // จะอ้างว่าข้อมูลตรงกับคลาวด์ได้ก็ต่อเมื่อเคยส่งสำเร็จจริงในรอบนี้
+  // การพูดเกินกว่าที่รู้คือสิ่งที่ทำลายความเชื่อถือของเจ้าของร้าน
   return (
     <div className="sync sync--ok">
       <span className="sync__dot" />
       <span>
-        ข้อมูลตรงกับคลาวด์แล้ว
-        {state.lastSyncAt &&
-          ` · ล่าสุด ${state.lastSyncAt.toLocaleTimeString('th-TH', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}`}
+        {state.lastSyncAt
+          ? `ข้อมูลตรงกับคลาวด์แล้ว · ล่าสุด ${state.lastSyncAt.toLocaleTimeString(
+              'th-TH',
+              { hour: '2-digit', minute: '2-digit' },
+            )}`
+          : 'ไม่มีรายการค้างส่ง'}
       </span>
     </div>
   );

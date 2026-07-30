@@ -1,5 +1,6 @@
-import type { Category, MenuItem, Order, OutboxItem } from '@prakaipos/shared';
+import type { Category, MenuItem, Order, OutboxItem, StaffRole } from '@prakaipos/shared';
 import Dexie, { type EntityTable } from 'dexie';
+import type { StoredPin } from '../auth/pinHash.js';
 
 /**
  * ฐานข้อมูลในเครื่องของแท็บเล็ตหน้าร้าน
@@ -15,6 +16,28 @@ export interface KeyValue {
   value: unknown;
 }
 
+/**
+ * ข้อมูลพนักงานที่เก็บไว้ในเครื่องเพื่อให้เข้าระบบตอนออฟไลน์ได้
+ *
+ * บันทึกตอนพนักงานคนนั้นเข้าระบบสำเร็จ "ครั้งแรกตอนมีเน็ต" หลังจากนั้น
+ * เขาเข้าระบบตอนเน็ตหลุดได้ตลอด — พนักงานใหม่ต้องเข้าครั้งแรกตอนมีเน็ต
+ * ซึ่งอธิบายให้ร้านเข้าใจได้ง่าย
+ */
+export interface StaffCredential {
+  staffId: string;
+  shopId: string;
+  username: string;
+  displayName: string;
+  role: StaffRole;
+  /** แฮชของ PIN สำหรับเทียบในเครื่อง — ไม่ใช่รหัสผ่านที่ใช้คุยกับเซิร์ฟเวอร์ */
+  pin: StoredPin;
+  /** จำนวนครั้งที่กด PIN ผิดติดกัน รีเซ็ตเมื่อเข้าสำเร็จ */
+  failedAttempts: number;
+  /** ห้ามลองใหม่จนกว่าจะถึงเวลานี้ — ว่างแปลว่าลองได้เลย */
+  lockedUntil: string | null;
+  lastLoginAt: string;
+}
+
 export class PosDatabase extends Dexie {
   /** เมนูที่ดึงลงมาแคชไว้ ใช้ตอนออฟไลน์ */
   menuItems!: EntityTable<MenuItem, 'id'>;
@@ -24,6 +47,8 @@ export class PosDatabase extends Dexie {
   /** คิวงานที่ยังส่งขึ้นคลาวด์ไม่สำเร็จ */
   outbox!: EntityTable<OutboxItem, 'seq'>;
   settings!: EntityTable<KeyValue, 'key'>;
+  /** พนักงานที่เคยเข้าระบบบนเครื่องนี้ ใช้ตรวจ PIN ตอนออฟไลน์ */
+  credentials!: EntityTable<StaffCredential, 'staffId'>;
 
   constructor(name = 'prakaipos') {
     super(name);
@@ -38,6 +63,11 @@ export class PosDatabase extends Dexie {
       // เพราะบิลต้องถูกสร้างก่อนที่จะมีการอัปเดตบิลนั้น
       outbox: '++seq, clientUuid, nextAttemptAt',
       settings: 'key',
+    });
+
+    // เพิ่มตารางข้อมูลเข้าระบบ — ไม่แตะโครงเดิม ข้อมูลที่มีอยู่จึงไม่หาย
+    this.version(2).stores({
+      credentials: 'staffId, shopId, username',
     });
   }
 }

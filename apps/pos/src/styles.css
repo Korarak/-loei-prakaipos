@@ -14,6 +14,7 @@
   --accent: #b8562f;
   --ok: #1f6f5c;
   --warn: #8a6d1f;
+  --chip: #f2efe9;
   --thai: 'Noto Sans Thai', 'Sarabun', 'Leelawadee UI', 'Segoe UI', system-ui, sans-serif;
 
   /* ขนาดเป้าสัมผัสขั้นต่ำ — ต่ำกว่านี้พนักงานจะกดพลาดตอนรีบ */
@@ -30,6 +31,7 @@
     --accent: #e2865c;
     --ok: #5fb89f;
     --warn: #d9b45c;
+    --chip: #27272b;
   }
 }
 
@@ -129,6 +131,293 @@ body {
 .facts dd {
   margin: 0;
   font-weight: 600;
+}
+
+.app__spacer {
+  flex: 1;
+}
+
+.app__user {
+  font: inherit;
+  font-size: 14px;
+  min-height: var(--touch);
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+/* ── แถบแจ้งเวอร์ชันใหม่ ── */
+
+.updatebar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 9px 16px;
+  font-size: 14px;
+  background: var(--accent);
+  color: #fff;
+}
+
+.updatebar--ok {
+  background: var(--ok);
+}
+
+.updatebar button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid #fff8;
+  background: #fff2;
+  color: #fff;
+  cursor: pointer;
+}
+
+.updatebar button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* ── หน้าจอเต็มจอ (ตั้งค่า / ล็อก) ── */
+
+.screen {
+  min-height: 100dvh;
+  padding: 24px 16px;
+}
+
+.screen--center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel--wide {
+  max-width: 760px;
+  width: 100%;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 16px 0;
+  font-size: 14px;
+  color: var(--ink2);
+}
+
+.field input {
+  font: inherit;
+  font-size: 17px;
+  /* 16px ขึ้นไปเท่านั้นที่ Safari บน iOS จะไม่ซูมเข้าอัตโนมัติตอนโฟกัส */
+  min-height: var(--touch);
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--ink);
+  width: 100%;
+}
+
+.field input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-color: transparent;
+}
+
+.hint {
+  font-size: 13px;
+  color: var(--ink2);
+  margin: 6px 0 0;
+}
+
+.alert {
+  border-left: 3px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-radius: 0 10px 10px 0;
+  padding: 10px 14px;
+  margin: 14px 0;
+  font-size: 14.5px;
+  color: var(--accent);
+}
+
+.btn {
+  font: inherit;
+  font-weight: 600;
+  min-height: var(--touch);
+  padding: 0 22px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.btn--primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.btn--block {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ── หน้าล็อก ── */
+
+.lock__shop {
+  font-size: 14px;
+  color: var(--ink2);
+}
+
+.lock__who {
+  text-align: center;
+  margin: 8px 0 20px;
+}
+
+.lock__back {
+  font: inherit;
+  font-size: 14px;
+  min-height: 40px;
+  padding: 0 12px 0 0;
+  border: none;
+  background: none;
+  color: var(--ink2);
+  cursor: pointer;
+}
+
+.lock__people {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.person {
+  font: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  /* ปุ่มใหญ่พอให้กดถูกตอนรีบ ตามหลักในเอกสารออกแบบหัวข้อ 12 */
+  padding: 20px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.person:active {
+  border-color: var(--accent);
+}
+
+.person__initial {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.person__name {
+  font-weight: 600;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.person__role {
+  font-size: 12px;
+  color: var(--ink2);
+}
+
+/* ── แป้นตัวเลข ── */
+
+.pinpad {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.pinpad__dots {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 6px;
+}
+
+.pinpad__dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+}
+
+.pinpad__dot--on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.pinpad__msg {
+  /* จองพื้นที่ไว้เสมอ ไม่ให้แป้นกระโดดตอนข้อความผิดพลาดโผล่ */
+  min-height: 22px;
+  text-align: center;
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
+.pinpad__msg--error {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.pinpad__keys {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.pinpad__key {
+  font: inherit;
+  font-size: 26px;
+  font-variant-numeric: tabular-nums;
+  /* สูงกว่าเป้าสัมผัสขั้นต่ำมาก เพราะเป็นปุ่มที่กดบ่อยที่สุดในระบบ */
+  min-height: 64px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pinpad__key:active {
+  background: var(--chip);
+  border-color: var(--accent);
+}
+
+.pinpad__key--alt {
+  font-size: 20px;
+  color: var(--ink2);
+}
+
+.pinpad__key:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 /* ── แถบสถานะการซิงก์ ── */
