@@ -1,6 +1,6 @@
 import { formatBaht } from '@prakaipos/shared';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import {
   addLine,
   cartCount,
@@ -10,24 +10,50 @@ import {
   setQty,
   type CartLine,
 } from './cart.js';
+import { submitOrder } from './submitOrder.js';
 import { useMenu } from './useMenu.js';
+import { useTableSession } from './useTableSession.js';
 
 /**
  * หน้าสั่งอาหารประจำโต๊ะ
  *
- * ลำดับตามเอกสารออกแบบหัวข้อ 07: ยืนยันเลขโต๊ะก่อน (กันสแกนผิดโต๊ะ)
- * แล้วจึงแสดงเมนู
+ * ลำดับตามเอกสารออกแบบหัวข้อ 07: ยืนยันลายเซ็นของลิงก์ก่อน (กันคนแกล้งสแกน
+ * URL มั่วๆ) → ยืนยันเลขโต๊ะกับลูกค้า (กันสแกนผิดโต๊ะ) → แสดงเมนู
  */
 export function TablePage() {
   const { shopCode = '', tableNo = '' } = useParams();
-  const menu = useMenu(shopCode);
+  const [searchParams] = useSearchParams();
+  const signature = searchParams.get('k');
+
+  const session = useTableSession(shopCode, tableNo, signature);
+  const menu = useMenu(session.session?.shopId ?? '');
+
   const [confirmed, setConfirmed] = useState(false);
   const [lines, setLines] = useState<CartLine[]>(() => loadCart(shopCode, tableNo));
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [lastOrder, setLastOrder] = useState<{ orderNo: number; status: string } | null>(
+    null,
+  );
 
   // เก็บตะกร้าทุกครั้งที่เปลี่ยน เพื่อให้สลับไปตอบแชทแล้วกลับมาของยังอยู่
   useEffect(() => {
     saveCart(shopCode, tableNo, lines);
   }, [shopCode, tableNo, lines]);
+
+  if (session.loading) {
+    return <div className="center">กำลังตรวจสอบลิงก์…</div>;
+  }
+
+  // ลิงก์ไม่ถูกต้อง — จบตรงนี้เลย ไม่แสดงเมนูหรือข้อมูลร้านใดๆ ต่อ
+  // เพราะลายเซ็นคือสิ่งเดียวที่ยืนยันว่าลูกค้ากำลังนั่งอยู่ที่โต๊ะนี้จริง
+  if (session.error || !session.session) {
+    return (
+      <div className="center">
+        <p className="error">{session.error ?? 'ลิงก์นี้ไม่ถูกต้อง'}</p>
+      </div>
+    );
+  }
 
   if (menu.loading) {
     return <div className="center">กำลังโหลดเมนู…</div>;
@@ -45,9 +71,9 @@ export function TablePage() {
   if (!confirmed) {
     return (
       <div className="center confirm">
-        <p className="confirm__shop">{menu.shopName}</p>
+        <p className="confirm__shop">{session.session.shopName}</p>
         <p className="confirm__label">คุณนั่งอยู่ที่โต๊ะ</p>
-        <p className="confirm__table">{tableNo}</p>
+        <p className="confirm__table">{session.session.tableNo}</p>
         <button type="button" className="btn btn--primary" onClick={() => setConfirmed(true)}>
           ใช่ ถูกต้อง
         </button>
@@ -58,16 +84,43 @@ export function TablePage() {
 
   const count = cartCount(lines);
 
+  async function handleSubmit() {
+    setSubmitting(true);
+    setSubmitError(null);
+
+    const result = await submitOrder(session.session!.sessionId, lines);
+
+    setSubmitting(false);
+    if (!result.ok) {
+      setSubmitError(result.error);
+      return;
+    }
+
+    setLastOrder({ orderNo: result.orderNo, status: result.status });
+    setLines([]);
+    saveCart(shopCode, tableNo, []);
+  }
+
   return (
     <div className="page">
       <header className="page__head">
         <div>
-          <div className="page__shop">{menu.shopName}</div>
-          <div className="page__table">โต๊ะ {tableNo}</div>
+          <div className="page__shop">{session.session.shopName}</div>
+          <div className="page__table">โต๊ะ {session.session.tableNo}</div>
         </div>
       </header>
 
       <main className="page__body">
+        {lastOrder && (
+          <div className="notice">
+            {lastOrder.status === 'pending'
+              ? 'ส่งออร์เดอร์แล้ว กำลังรอร้านยืนยัน'
+              : 'ส่งออร์เดอร์เข้าครัวแล้ว'}
+            <br />
+            สั่งเพิ่มได้เลยถ้ายังหิว — จะไปรวมบิลเดียวกันตอนจ่ายเงิน
+          </div>
+        )}
+
         {menu.categories.map((cat) => (
           <section key={cat.id} className="cat">
             <h2 className="cat__name">{cat.name}</h2>
@@ -136,14 +189,20 @@ export function TablePage() {
               </li>
             ))}
           </ul>
+
+          {submitError && <p className="error cartbar__error">{submitError}</p>}
+
           <div className="cartbar__foot">
             <span>
               รวม {count} รายการ · <b>{formatBaht(cartTotal(lines))}</b>
             </span>
-            {/* ส่งออร์เดอร์ยังทำไม่ได้จนกว่าจะมี hook ตรวจลายเซ็นฝั่งเซิร์ฟเวอร์
-                — ดู backend/README.md หัวข้อ "ยังทำไม่เสร็จ" */}
-            <button type="button" className="btn btn--primary" disabled>
-              สั่งอาหาร (ยังไม่เปิดใช้)
+            <button
+              type="button"
+              className="btn btn--primary"
+              disabled={submitting}
+              onClick={() => void handleSubmit()}
+            >
+              {submitting ? 'กำลังส่ง…' : 'สั่งอาหาร'}
             </button>
           </div>
         </footer>

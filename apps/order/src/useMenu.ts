@@ -19,34 +19,8 @@ export interface PublicCategory {
 
 export interface MenuState {
   loading: boolean;
-  shopName: string;
   categories: PublicCategory[];
   error: string | null;
-}
-
-/** สิ่งที่เส้นทางสาธารณะ /api/public/shop/:code คืนกลับมา */
-interface PublicShop {
-  id: string;
-  code: string;
-  name: string;
-  qrOrderMode: string;
-  tablesEnabled: boolean;
-}
-
-/**
- * แปลงรหัสร้านในลิงก์ QR เป็นข้อมูลร้าน
- *
- * ใช้เส้นทางสาธารณะที่เขียนไว้เอง ไม่ใช่ collection `shops` ตรงๆ
- * เพราะ `shops` ปิดไม่ให้อ่านสาธารณะโดยตั้งใจ — ถ้าเปิด ใครก็ดึงรายชื่อ
- * ร้านลูกค้าทั้งหมดของเราไปได้ (ดู backend/pb_hooks/public_shop.pb.js)
- */
-async function fetchShop(shopCode: string, signal: AbortSignal): Promise<PublicShop> {
-  const res = await fetch(
-    `${pb.baseURL}/api/public/shop/${encodeURIComponent(shopCode)}`,
-    { signal },
-  );
-  if (!res.ok) throw new Error(`ไม่พบร้าน ${shopCode}`);
-  return (await res.json()) as PublicShop;
 }
 
 interface CategoryRecord {
@@ -65,15 +39,19 @@ interface MenuItemRecord {
 }
 
 /**
- * โหลดเมนูของร้านตามรหัสร้านในลิงก์
+ * โหลดเมนูของร้าน — รับ shopId ที่ยืนยันแล้วจาก useTableSession เข้ามาตรงๆ
  *
- * เมนูเปิดอ่านสาธารณะโดยตั้งใจ เพราะหน้านี้ไม่มีการล็อกอิน
- * และเมนูร้านอาหารเป็นข้อมูลที่ติดไว้หน้าร้านอยู่แล้ว ไม่ใช่ความลับ
+ * ไม่ทำการยืนยันร้านซ้ำเองในนี้ เพราะการยืนยันด้วยลายเซ็น HMAC เกิดขึ้น
+ * ที่ useTableSession ไปแล้วครั้งเดียว — ถ้าให้ที่นี่ค้นหาร้านซ้ำโดยไม่ต้อง
+ * มีลายเซ็น จะเปิดช่องให้ดูเมนูของร้านไหนก็ได้จากแค่รหัสร้าน ทั้งที่ตั้งใจ
+ * ให้ต้องผ่านการสแกน QR ที่มีลายเซ็นถูกต้องก่อนเสมอ
+ *
+ * เมนูเปิดอ่านสาธารณะที่ระดับ collection โดยตั้งใจ (ไม่ต้องล็อกอิน)
+ * แต่การ "รู้ shopId ที่จะขอ" ต้องผ่านขั้นตอนยืนยันลายเซ็นก่อนแล้วเท่านั้น
  */
-export function useMenu(shopCode: string): MenuState {
+export function useMenu(shopId: string): MenuState {
   const [state, setState] = useState<MenuState>({
     loading: true,
-    shopName: '',
     categories: [],
     error: null,
   });
@@ -84,16 +62,16 @@ export function useMenu(shopCode: string): MenuState {
 
     async function load() {
       try {
-        const shop = await fetchShop(shopCode, abort.signal);
-
         const [cats, items] = await Promise.all([
           pb.collection('categories').getFullList<CategoryRecord>({
-            filter: `shop="${shop.id}" && active=true`,
+            filter: `shop="${shopId}" && active=true`,
             sort: 'sort_order',
+            signal: abort.signal,
           }),
           pb.collection('menu_items').getFullList<MenuItemRecord>({
-            filter: `shop="${shop.id}" && active=true`,
+            filter: `shop="${shopId}" && active=true`,
             sort: 'sort_order',
+            signal: abort.signal,
           }),
         ]);
 
@@ -117,12 +95,11 @@ export function useMenu(shopCode: string): MenuState {
           // หมวดที่ไม่มีเมนูเลยไม่ต้องแสดง ทำให้ลูกค้าเลื่อนหาน้อยลง
           .filter((c) => c.items.length > 0);
 
-        setState({ loading: false, shopName: shop.name, categories, error: null });
+        setState({ loading: false, categories, error: null });
       } catch {
         if (cancelled) return;
         setState({
           loading: false,
-          shopName: '',
           categories: [],
           // ไม่แสดงรายละเอียดทางเทคนิคให้ลูกค้าเห็น เขาทำอะไรกับมันไม่ได้
           // บอกสิ่งที่ทำได้จริงแทน
@@ -136,7 +113,7 @@ export function useMenu(shopCode: string): MenuState {
       cancelled = true;
       abort.abort();
     };
-  }, [shopCode]);
+  }, [shopId]);
 
   return state;
 }

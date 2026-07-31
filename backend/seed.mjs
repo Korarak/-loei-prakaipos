@@ -10,9 +10,19 @@
  * รันซ้ำได้ — ลบข้อมูลเดิมของร้านตัวอย่างก่อนสร้างใหม่ทุกครั้ง
  */
 
+import { createHmac, randomBytes } from 'node:crypto';
+
 const PB = process.env.PB_URL ?? 'http://127.0.0.1:8090';
 const ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL ?? 'dev@prakaipos.local';
 const ADMIN_PASSWORD = process.env.PB_ADMIN_PASSWORD ?? 'devpassword123';
+
+/**
+ * ลายเซ็นของลิงก์โต๊ะ — ต้องคำนวณแบบเดียวกับฝั่ง pb_hooks/qr_order.pb.js เป๊ะ
+ * ($security.hs256 ของ PocketBase คือ HMAC-SHA256 คืนค่าเป็น hex เหมือนกัน)
+ */
+function signTableLink(shopCode, tableNo, secret) {
+  return createHmac('sha256', secret).update(`${shopCode}:${tableNo}`).digest('hex');
+}
 
 /** บาท → สตางค์ (ข้อมูล seed เขียนเป็นบาทให้อ่านง่าย) */
 const b = (baht) => Math.round(baht * 100);
@@ -92,6 +102,8 @@ async function seedShop(token, { code, name, promptpayId, tablesEnabled, deviceI
       promptpay_id: promptpayId,
       qr_order_mode: 'staff_confirm',
       tables_enabled: tablesEnabled,
+      // กุญแจลับสำหรับเซ็นลายเซ็นลิงก์โต๊ะ — ร้านจริงจะสุ่มครั้งเดียวตอนเปิดบัญชี
+      qr_secret: randomBytes(24).toString('hex'),
     },
   });
   console.log(`  ร้าน ${name} (${code}) → ${shop.id}`);
@@ -194,6 +206,9 @@ async function seedShop(token, { code, name, promptpayId, tablesEnabled, deviceI
     },
   });
   console.log(`    บิลตัวอย่าง 1 ใบ เลขที่ ${start}`);
+
+  const sig = signTableLink(code, '5', shop.qr_secret);
+  console.log(`    ลิงก์โต๊ะ 5 สำหรับทดสอบ: /t/${code}/5?k=${sig}`);
 
   return shop;
 }

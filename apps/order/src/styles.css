@@ -12,6 +12,7 @@
   --ink2: #5c5c66;
   --line: #e3e0da;
   --accent: #b8562f;
+  --ok: #1f6f5c;
   --thai: 'Noto Sans Thai', 'Sarabun', 'Leelawadee UI', 'Segoe UI', system-ui, sans-serif;
 }
 
@@ -23,6 +24,7 @@
     --ink2: #a3a0a8;
     --line: #33333a;
     --accent: #e2865c;
+    --ok: #5fb89f;
   }
 }
 
@@ -143,6 +145,22 @@ body {
 
 .page__body {
   padding: 8px 16px;
+}
+
+.notice {
+  background: color-mix(in srgb, var(--ok) 12%, transparent);
+  color: var(--ok);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.5;
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 8px 0 16px;
+}
+
+.cartbar__error {
+  font-size: 13.5px;
+  margin: 0;
 }
 
 .cat__name {

@@ -7,6 +7,8 @@ import { useIdleLock } from './auth/useIdleLock.js';
 import { SyncBadge } from './components/SyncBadge.js';
 import { UpdateBanner } from './components/UpdateBanner.js';
 import { requestPersistentStorage } from './db/db.js';
+import { IncomingOrdersButton } from './components/IncomingOrdersPanel.js';
+import { useIncomingOrders } from './qr/useIncomingOrders.js';
 import { LockScreen } from './screens/LockScreen.js';
 import { MenuScreen } from './screens/MenuScreen.js';
 import { SellScreen } from './screens/SellScreen.js';
@@ -79,6 +81,7 @@ function PosShell({
   onLock: () => void;
 }) {
   const sync = useSync();
+  const incoming = useIncomingOrders(device.shopId);
   const [screen, setScreen] = useState<Screen>('sell');
   const [shop, setShop] = useState<ShopSettings | null>(null);
 
@@ -103,6 +106,7 @@ function PosShell({
         <div className="app__brand">{device.shopName}</div>
         <SyncBadge state={sync} onRetry={() => void sync.syncNow()} />
         <div className="app__spacer" />
+        <IncomingOrdersButton state={incoming} />
         <button type="button" className="app__user" onClick={() => setScreen('menu')}>
           จัดการเมนู
         </button>
