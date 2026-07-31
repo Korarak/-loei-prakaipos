@@ -61,9 +61,19 @@ export default defineConfig({
         ],
       },
       devOptions: {
-        // เปิดไว้เพื่อทดสอบพฤติกรรมออฟไลน์ตอน dev ได้โดยไม่ต้อง build ก่อน
-        enabled: true,
-        type: 'module',
+        // ปิดโดยตั้งใจ
+        //
+        // Service Worker ในโหมด dev อยู่ต่อในเบราว์เซอร์หลังปิด dev server
+        // แล้วดักหน้า localhost:5173 ไว้ เสิร์ฟ shell เก่าจากแคช
+        // ซึ่งไปขอ /src/main.tsx จากเซิร์ฟเวอร์ที่ไม่มีแล้ว
+        // ได้ ERR_CONNECTION_REFUSED เป็นพรืด และดูเหมือนแอปพัง
+        //
+        // ที่แย่กว่าคือ SW ในโหมด dev มีชุดไฟล์แคชไม่เหมือนของจริง
+        // การทดสอบพฤติกรรมออฟไลน์ตรงนี้จึงให้ผลที่เชื่อไม่ได้อยู่แล้ว
+        //
+        // ทดสอบออฟไลน์ของจริงด้วย:  npm run build -w @prakaipos/pos
+        //                          npm run preview -w @prakaipos/pos
+        enabled: false,
       },
     }),
   ],

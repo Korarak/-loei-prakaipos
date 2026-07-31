@@ -41,7 +41,38 @@ export async function applyPendingUpdate(): Promise<void> {
   await applyUpdate?.(true);
 }
 
+/**
+ * ถอน Service Worker ที่ค้างจากโหมด dev รุ่นก่อน
+ *
+ * เคยเปิด devOptions.enabled ไว้ เครื่องที่เคยรัน dev จึงมี SW ลงทะเบียนค้างอยู่
+ * และมันจะดักหน้า localhost ต่อไปเรื่อยๆ แม้ปิด dev server แล้ว
+ * ทำให้เห็น ERR_CONNECTION_REFUSED เป็นพรืดโดยไม่รู้สาเหตุ
+ *
+ * ทำให้หายเองดีกว่าปล่อยให้ต้องไปกด unregister ใน devtools เอง
+ */
+async function unregisterDevServiceWorkers(): Promise<void> {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    if (registrations.length === 0) return;
+
+    await Promise.all(registrations.map((r) => r.unregister()));
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+    console.info('ถอน Service Worker ที่ค้างจากโหมด dev แล้ว — รีโหลดหนึ่งครั้ง');
+  } catch {
+    // ถอนไม่สำเร็จก็ไม่ควรทำให้แอปเปิดไม่ได้
+  }
+}
+
 export function initServiceWorker(): void {
+  if (import.meta.env.DEV) {
+    void unregisterDevServiceWorkers();
+    return;
+  }
+
   applyUpdate = registerSW({
     onNeedRefresh() {
       setState('available');
