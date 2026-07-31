@@ -56,7 +56,8 @@ export function backoffMs(attempts: number, random: () => number = Math.random):
 
 /** เพิ่มงานเข้าคิว — เรียกทันทีหลังเขียนข้อมูลลงเครื่องสำเร็จ */
 export async function enqueue(
-  entry: Pick<OutboxItem, 'collection' | 'op' | 'clientUuid' | 'payload'>,
+  entry: Pick<OutboxItem, 'collection' | 'op' | 'clientUuid' | 'payload'> &
+    Partial<Pick<OutboxItem, 'serverId'>>,
   now: Date = new Date(),
 ): Promise<number> {
   const iso = now.toISOString();

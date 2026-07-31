@@ -64,8 +64,15 @@ export const pocketbaseSender: OutboxSender = {
         return { ok: true, serverId: record.id };
       }
 
-      // การอัปเดตต้องหาเรกคอร์ดจาก clientUuid ก่อน เพราะเครื่องไม่รู้ id ของเซิร์ฟเวอร์
-      // จนกว่าการสร้างจะสำเร็จ และเราไม่อยากผูกคิวไว้กับ id ที่อาจยังไม่มี
+      // รู้ id ของเซิร์ฟเวอร์อยู่แล้ว (เช่น เมนูที่ดึงลงมา) ก็อัปเดตตรงได้เลย
+      if (item.serverId) {
+        await pb.collection(item.collection).update(item.serverId, item.payload);
+        return { ok: true, serverId: item.serverId };
+      }
+
+      // ส่วนบิลที่แท็บเล็ตสร้างเอง ต้องหาเรกคอร์ดจาก clientUuid ก่อน
+      // เพราะเครื่องไม่รู้ id ของเซิร์ฟเวอร์จนกว่าการสร้างจะสำเร็จ
+      // และเราไม่อยากผูกคิวไว้กับ id ที่อาจยังไม่มี
       const existing = await pb
         .collection(item.collection)
         .getFirstListItem(`client_uuid="${item.clientUuid}"`);

@@ -420,6 +420,181 @@ body {
   cursor: default;
 }
 
+/* ── หน้าจัดการเมนู ── */
+
+.mcat {
+  margin-bottom: 28px;
+  max-width: 900px;
+}
+
+.mcat__head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+}
+
+.mcat__head h2 {
+  font-size: 17px;
+  margin: 0;
+}
+
+.mlist {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.mrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.mrow--out {
+  opacity: 0.6;
+}
+
+.mrow__img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.mrow__img--empty {
+  background: var(--chip);
+  border: 1px dashed var(--line);
+}
+
+.mrow__info {
+  flex: 1;
+  min-width: 140px;
+}
+
+.mrow__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.mrow__price {
+  font-size: 14px;
+  color: var(--ink2);
+  font-variant-numeric: tabular-nums;
+}
+
+.toggle {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--ok);
+  background: transparent;
+  color: var(--ok);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.toggle--on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.linkbtn {
+  font: inherit;
+  font-size: 14px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: none;
+  background: none;
+  color: var(--ink2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.linkbtn--danger {
+  color: var(--accent);
+}
+
+.btn--danger {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  font: inherit;
+  font-size: 14px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.chip--on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ── กล่องซ้อน (ยืนยัน / แก้ไข) ── */
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #0006;
+  overflow-y: auto;
+}
+
+.sheet__panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 22px 24px;
+  width: 100%;
+  max-width: 460px;
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+
+.sheet__panel h2 {
+  margin: 0 0 4px;
+  font-size: 19px;
+}
+
+.sheet__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
 /* ── แถบสถานะการซิงก์ ── */
 
 .sync {

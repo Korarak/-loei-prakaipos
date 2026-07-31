@@ -8,8 +8,12 @@ import { SyncBadge } from './components/SyncBadge.js';
 import { UpdateBanner } from './components/UpdateBanner.js';
 import { requestPersistentStorage } from './db/db.js';
 import { LockScreen } from './screens/LockScreen.js';
+import { MenuScreen } from './screens/MenuScreen.js';
 import { SetupScreen } from './screens/SetupScreen.js';
 import { useSync } from './sync/useSync.js';
+
+/** หน้าจอที่เปิดอยู่หลังเข้าระบบแล้ว */
+type Screen = 'sell' | 'menu';
 
 /**
  * ลำดับหน้าจอ
@@ -73,6 +77,17 @@ function PosShell({
   onLock: () => void;
 }) {
   const sync = useSync();
+  const [screen, setScreen] = useState<Screen>('sell');
+
+  if (screen === 'menu') {
+    return (
+      <MenuScreen
+        shopId={device.shopId}
+        profile={session.profile}
+        onBack={() => setScreen('sell')}
+      />
+    );
+  }
 
   return (
     <div className="app">
@@ -80,6 +95,9 @@ function PosShell({
         <div className="app__brand">{device.shopName}</div>
         <SyncBadge state={sync} onRetry={() => void sync.syncNow()} />
         <div className="app__spacer" />
+        <button type="button" className="app__user" onClick={() => setScreen('menu')}>
+          จัดการเมนู
+        </button>
         <button type="button" className="app__user" onClick={onLock}>
           {session.profile.displayName} · ล็อก
         </button>
