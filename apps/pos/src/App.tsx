@@ -9,7 +9,9 @@ import { UpdateBanner } from './components/UpdateBanner.js';
 import { requestPersistentStorage } from './db/db.js';
 import { LockScreen } from './screens/LockScreen.js';
 import { MenuScreen } from './screens/MenuScreen.js';
+import { SellScreen } from './screens/SellScreen.js';
 import { SetupScreen } from './screens/SetupScreen.js';
+import { refreshShopSettings, type ShopSettings } from './shop/shopSettings.js';
 import { useSync } from './sync/useSync.js';
 
 /** หน้าจอที่เปิดอยู่หลังเข้าระบบแล้ว */
@@ -78,6 +80,12 @@ function PosShell({
 }) {
   const sync = useSync();
   const [screen, setScreen] = useState<Screen>('sell');
+  const [shop, setShop] = useState<ShopSettings | null>(null);
+
+  useEffect(() => {
+    // ดึงค่าตั้งร้าน (โดยเฉพาะเลขพร้อมเพย์) มาแคชไว้ให้หน้ารับเงินใช้ตอนเน็ตหลุด
+    void refreshShopSettings(device.shopId).then(setShop);
+  }, [device.shopId]);
 
   if (screen === 'menu') {
     return (
@@ -103,44 +111,11 @@ function PosShell({
         </button>
       </header>
 
-      <main className="app__main">
-        <section className="panel">
-          <h1>เข้าระบบแล้ว</h1>
-          <p className="muted">
-            งานถัดไปคือหน้าขายจริง — เลือกเมนู ตะกร้า และคิดเงิน
-          </p>
-
-          <dl className="facts">
-            <dt>ร้าน</dt>
-            <dd>
-              {device.shopName} ({device.shopCode})
-            </dd>
-
-            <dt>เครื่อง</dt>
-            <dd>
-              {device.deviceName} · เครื่องที่ {device.deviceIndex}
-            </dd>
-
-            <dt>ช่วงเลขบิล</dt>
-            <dd>
-              {device.orderNoRange.start}–{device.orderNoRange.end} · ถัดไป{' '}
-              {device.orderNoRange.next}
-            </dd>
-
-            <dt>ผู้ใช้งาน</dt>
-            <dd>
-              {session.profile.displayName}
-              {session.profile.role === 'owner' ? ' (เจ้าของร้าน)' : ''}
-            </dd>
-
-            <dt>ยืนยันตัวตนรอบนี้</dt>
-            <dd>{session.verifiedOnline ? 'กับเซิร์ฟเวอร์' : 'จากข้อมูลในเครื่อง'}</dd>
-
-            <dt>รายการค้างส่ง</dt>
-            <dd>{sync.pending}</dd>
-          </dl>
-        </section>
-      </main>
+      <SellScreen
+        device={device}
+        profile={session.profile}
+        promptpayId={shop?.promptpayId ?? ''}
+      />
     </div>
   );
 }

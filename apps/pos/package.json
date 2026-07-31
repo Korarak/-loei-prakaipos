@@ -14,6 +14,7 @@
     "@prakaipos/shared": "*",
     "dexie": "^4.0.11",
     "pocketbase": "^0.25.1",
+    "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.5"
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
+    "@types/qrcode": "^1.5.5",
     "@vitejs/plugin-react": "^4.3.4",
     "fake-indexeddb": "^6.0.0",
     "typescript": "^5.7.3",
