@@ -16,12 +16,17 @@
   "scripts": {
     "dev:pos": "npm run dev -w @prakaipos/pos",
     "dev:order": "npm run dev -w @prakaipos/order",
-    "build": "npm run build -w @prakaipos/shared && npm run build -w @prakaipos/pos && npm run build -w @prakaipos/order",
+    "dev:admin": "npm run dev -w @prakaipos/admin",
+    "build": "npm run build -w @prakaipos/shared && npm run build -w @prakaipos/pos && npm run build -w @prakaipos/order && npm run build -w @prakaipos/admin",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "pb:up": "docker compose -f backend/docker-compose.yml up -d",
     "pb:down": "docker compose -f backend/docker-compose.yml down",
-    "pb:logs": "docker compose -f backend/docker-compose.yml logs -f"
+    "pb:logs": "docker compose -f backend/docker-compose.yml logs -f",
+    "dev:up": "docker compose -f docker-compose.dev.yml up",
+    "dev:up:d": "docker compose -f docker-compose.dev.yml up -d",
+    "dev:down": "docker compose -f docker-compose.dev.yml down",
+    "dev:logs": "docker compose -f docker-compose.dev.yml logs -f"
   },
   "devDependencies": {
     "@types/node": "^22.13.1",

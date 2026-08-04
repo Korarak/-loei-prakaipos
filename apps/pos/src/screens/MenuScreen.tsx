@@ -1,8 +1,10 @@
-import type { Category, MenuItem } from '@prakaipos/shared';
-import { formatBaht, parseBahtInput } from '@prakaipos/shared';
+import type { Category, Ingredient, MenuItem, ModifierGroup, RecipeLine } from '@prakaipos/shared';
+import { formatBaht, newUuid, parseBahtInput } from '@prakaipos/shared';
 import { useState } from 'react';
 import type { StaffProfile } from '../auth/credentials.js';
 import { ConfirmDialog } from '../components/ConfirmDialog.js';
+import { marginPercent, recipeCost } from '../menu/cost.js';
+import { optimizeImage } from '../menu/imageOptimize.js';
 import { useMenuData } from '../menu/useMenuData.js';
 import {
   createCategory,
@@ -12,6 +14,7 @@ import {
   setSoldOut,
   updateMenuItem,
 } from '../menu/menuActions.js';
+import { useIngredients } from '../stock/useIngredients.js';
 
 /**
  * หน้าจัดการเมนู
@@ -23,11 +26,11 @@ import {
 interface MenuScreenProps {
   shopId: string;
   profile: StaffProfile;
-  onBack: () => void;
 }
 
-export function MenuScreen({ shopId, profile, onBack }: MenuScreenProps) {
+export function MenuScreen({ shopId, profile }: MenuScreenProps) {
   const menu = useMenuData(shopId);
+  const ingredientsState = useIngredients(shopId);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<MenuItem | 'new' | null>(null);
   const [addingCategory, setAddingCategory] = useState(false);
@@ -50,12 +53,8 @@ export function MenuScreen({ shopId, profile, onBack }: MenuScreenProps) {
   }
 
   return (
-    <div className="app">
-      <header className="app__bar">
-        <button type="button" className="app__user" onClick={onBack}>
-          ← กลับ
-        </button>
-        <div className="app__brand">จัดการเมนู</div>
+    <>
+      <div className="app__toolbar">
         {menu.refreshing && <span className="muted">กำลังอัปเดต…</span>}
         {menu.stale && (
           <span className="sync sync--offline">
@@ -73,10 +72,9 @@ export function MenuScreen({ shopId, profile, onBack }: MenuScreenProps) {
             + เพิ่มเมนู
           </button>
         )}
-      </header>
+      </div>
 
-      <main className="app__main">
-        {error && <p className="alert">{error}</p>}
+      {error && <p className="alert">{error}</p>}
 
         {!isOwner && (
           <p className="hint">
@@ -106,6 +104,7 @@ export function MenuScreen({ shopId, profile, onBack }: MenuScreenProps) {
             category={cat}
             items={menu.items.filter((i) => i.categoryId === cat.id)}
             isOwner={isOwner}
+            ingredients={ingredientsState.ingredients}
             onToggleSoldOut={(item) => void run(() => setSoldOut(item.id, !item.soldOut))}
             onEditItem={setEditing}
             onDeleteItem={setConfirmDelete}
@@ -127,7 +126,6 @@ export function MenuScreen({ shopId, profile, onBack }: MenuScreenProps) {
             + เพิ่มหมวด
           </button>
         )}
-      </main>
 
       {confirmDelete && (
         <ConfirmDialog
@@ -161,6 +159,7 @@ export function MenuScreen({ shopId, profile, onBack }: MenuScreenProps) {
         <ItemDialog
           item={editing === 'new' ? null : editing}
           categories={menu.categories}
+          ingredients={ingredientsState.ingredients}
           onCancel={() => setEditing(null)}
           onSave={(input) =>
             void run(async () => {
@@ -176,9 +175,10 @@ export function MenuScreen({ shopId, profile, onBack }: MenuScreenProps) {
               setEditing(null);
             })
           }
+
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -186,6 +186,7 @@ function CategoryBlock({
   category,
   items,
   isOwner,
+  ingredients,
   onToggleSoldOut,
   onEditItem,
   onDeleteItem,
@@ -194,6 +195,7 @@ function CategoryBlock({
   category: Category;
   items: MenuItem[];
   isOwner: boolean;
+  ingredients: Ingredient[];
   onToggleSoldOut: (item: MenuItem) => void;
   onEditItem: (item: MenuItem) => void;
   onDeleteItem: (item: MenuItem) => void;
@@ -226,6 +228,15 @@ function CategoryBlock({
               <div className="mrow__info">
                 <div className="mrow__name">{item.name}</div>
                 <div className="mrow__price">{formatBaht(item.price)}</div>
+                {isOwner && item.recipe.length > 0 && (
+                  <div className="hint">
+                    ต้นทุน {formatBaht(recipeCost(item.recipe, ingredients))}
+                    {(() => {
+                      const pct = marginPercent(item, ingredients);
+                      return pct === null ? '' : ` · กำไร ${pct.toFixed(0)}%`;
+                    })()}
+                  </div>
+                )}
               </div>
 
               {/* ปุ่มนี้ต้องกดได้ตลอดแม้ไม่มีเน็ต — พนักงานกดตอนกลางวันขายดี */}
@@ -309,17 +320,21 @@ function CategoryDialog({
 function ItemDialog({
   item,
   categories,
+  ingredients,
   onCancel,
   onSave,
 }: {
   item: MenuItem | null;
   categories: Category[];
+  ingredients: Ingredient[];
   onCancel: () => void;
   onSave: (input: {
     categoryId: string;
     name: string;
     price: number;
     image?: File | null;
+    modifierGroups: ModifierGroup[];
+    recipe: RecipeLine[];
   }) => void;
 }) {
   const [name, setName] = useState(item?.name ?? '');
@@ -330,7 +345,33 @@ function ItemDialog({
     item?.categoryId ?? categories[0]?.id ?? '',
   );
   const [image, setImage] = useState<File | null>(null);
+  const [optimizingImage, setOptimizingImage] = useState(false);
+  const [imageSizeHint, setImageSizeHint] = useState<string | null>(null);
+  const [groups, setGroups] = useState<ModifierGroup[]>(item?.modifierGroups ?? []);
+  const [recipe, setRecipe] = useState<RecipeLine[]>(item?.recipe ?? []);
   const [invalid, setInvalid] = useState<string | null>(null);
+
+  // ย่อ/บีบอัดรูปทันทีที่เลือกไฟล์ ก่อนถึงตอนกดบันทึกด้วยซ้ำ — เพื่อให้เจ้าของร้าน
+  // เห็นผลลัพธ์ (ขนาดไฟล์ลดลงแค่ไหน) ก่อนตัดสินใจบันทึกจริง
+  async function handleImageChange(file: File | null) {
+    if (!file) {
+      setImage(null);
+      setImageSizeHint(null);
+      return;
+    }
+    setOptimizingImage(true);
+    try {
+      const optimized = await optimizeImage(file);
+      setImage(optimized);
+      setImageSizeHint(
+        optimized.size < file.size
+          ? `ย่อจาก ${(file.size / 1024).toFixed(0)} KB เหลือ ${(optimized.size / 1024).toFixed(0)} KB`
+          : `${(optimized.size / 1024).toFixed(0)} KB`,
+      );
+    } finally {
+      setOptimizingImage(false);
+    }
+  }
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -345,7 +386,20 @@ function ItemDialog({
       return;
     }
 
-    onSave({ categoryId, name: name.trim(), price, image });
+    // ตัดกลุ่ม/ตัวเลือกที่ยังไม่ได้ตั้งชื่อทิ้ง — กันเผลอบันทึกแถวว่างที่กดเพิ่มไว้แล้วไม่ได้กรอก
+    const cleanGroups = groups
+      .map((g) => ({ ...g, options: g.options.filter((o) => o.name.trim() !== '') }))
+      .filter((g) => g.name.trim() !== '' && g.options.length > 0);
+    const cleanRecipe = recipe.filter((r) => r.ingredientId && r.qty > 0);
+
+    onSave({
+      categoryId,
+      name: name.trim(),
+      price,
+      image,
+      modifierGroups: cleanGroups,
+      recipe: cleanRecipe,
+    });
   }
 
   return (
@@ -396,12 +450,20 @@ function ItemDialog({
           <input
             type="file"
             accept="image/jpeg,image/png,image/webp"
-            onChange={(e) => setImage(e.target.files?.[0] ?? null)}
+            onChange={(e) => void handleImageChange(e.target.files?.[0] ?? null)}
           />
           <small className="hint">
-            ไฟล์ไม่เกิน 2 MB — รูปใหญ่กว่านี้ทำให้หน้าลูกค้าโหลดช้าตอนสัญญาณอ่อน
+            {optimizingImage
+              ? 'กำลังย่อรูป…'
+              : imageSizeHint
+                ? `ย่อรูปให้แล้วอัตโนมัติ · ${imageSizeHint}`
+                : 'ย่อรูปให้อัตโนมัติก่อนอัปโหลดเสมอ ไม่ต้องแต่งรูปมาเอง'}
           </small>
         </label>
+
+        <ModifierGroupsEditor groups={groups} onChange={setGroups} />
+
+        <RecipeEditor recipe={recipe} ingredients={ingredients} onChange={setRecipe} />
 
         {invalid && <p className="alert">{invalid}</p>}
 
@@ -409,11 +471,204 @@ function ItemDialog({
           <button type="button" className="btn" onClick={onCancel}>
             ยกเลิก
           </button>
-          <button type="submit" className="btn btn--primary">
-            บันทึก
+          <button type="submit" className="btn btn--primary" disabled={optimizingImage}>
+            {optimizingImage ? 'กำลังย่อรูป…' : 'บันทึก'}
           </button>
         </div>
       </form>
+    </div>
+  );
+}
+
+/**
+ * แก้ตัวเลือก/ท็อปปิ้งของเมนู — เช่น "ระดับความเผ็ด" (เลือกได้ตัวเดียว)
+ * หรือ "ตัวเลือกเพิ่ม" (เลือกได้หลายอย่าง เช่น ไข่ดาว +10)
+ *
+ * แถวที่ยังไม่กรอกชื่อจะถูกตัดทิ้งตอนบันทึก (ดู submit() ใน ItemDialog)
+ * จึงกดเพิ่มแถวว่างไว้ก่อนได้โดยไม่ต้องกังวลว่าจะบันทึกขยะ
+ */
+function ModifierGroupsEditor({
+  groups,
+  onChange,
+}: {
+  groups: ModifierGroup[];
+  onChange: (groups: ModifierGroup[]) => void;
+}) {
+  function addGroup() {
+    onChange([...groups, { id: newUuid(), name: '', required: false, multiple: false, options: [] }]);
+  }
+
+  function updateGroup(id: string, patch: Partial<ModifierGroup>) {
+    onChange(groups.map((g) => (g.id === id ? { ...g, ...patch } : g)));
+  }
+
+  function removeGroup(id: string) {
+    onChange(groups.filter((g) => g.id !== id));
+  }
+
+  function addOption(groupId: string) {
+    updateGroup(groupId, {
+      options: [
+        ...(groups.find((g) => g.id === groupId)?.options ?? []),
+        { id: newUuid(), name: '', priceDelta: 0 },
+      ],
+    });
+  }
+
+  return (
+    <div className="field">
+      <span>ตัวเลือก/ท็อปปิ้ง (ไม่บังคับ)</span>
+
+      {groups.map((group) => (
+        <div key={group.id} className="modgroup">
+          <div className="modgroup__row">
+            <input
+              value={group.name}
+              onChange={(e) => updateGroup(group.id, { name: e.target.value })}
+              placeholder="ชื่อกลุ่ม เช่น ระดับความเผ็ด"
+            />
+            <button type="button" className="linkbtn linkbtn--danger" onClick={() => removeGroup(group.id)}>
+              ลบกลุ่ม
+            </button>
+          </div>
+
+          <label className="modgroup__check">
+            <input
+              type="checkbox"
+              checked={group.multiple}
+              onChange={(e) => updateGroup(group.id, { multiple: e.target.checked })}
+            />
+            เลือกได้หลายอย่าง
+          </label>
+          <label className="modgroup__check">
+            <input
+              type="checkbox"
+              checked={group.required}
+              onChange={(e) => updateGroup(group.id, { required: e.target.checked })}
+            />
+            ต้องเลือกก่อนสั่ง
+          </label>
+
+          {group.options.map((opt) => (
+            <div key={opt.id} className="modgroup__row">
+              <input
+                value={opt.name}
+                onChange={(e) =>
+                  updateGroup(group.id, {
+                    options: group.options.map((o) =>
+                      o.id === opt.id ? { ...o, name: e.target.value } : o,
+                    ),
+                  })
+                }
+                placeholder="เช่น เผ็ดน้อย"
+              />
+              <input
+                value={opt.priceDelta === 0 ? '' : (opt.priceDelta / 100).toFixed(2)}
+                onChange={(e) => {
+                  const delta = parseBahtInput(e.target.value) ?? 0;
+                  updateGroup(group.id, {
+                    options: group.options.map((o) =>
+                      o.id === opt.id ? { ...o, priceDelta: delta } : o,
+                    ),
+                  });
+                }}
+                inputMode="decimal"
+                placeholder="+0.00"
+                className="modgroup__price"
+              />
+              <button
+                type="button"
+                className="linkbtn linkbtn--danger"
+                onClick={() =>
+                  updateGroup(group.id, { options: group.options.filter((o) => o.id !== opt.id) })
+                }
+              >
+                ลบ
+              </button>
+            </div>
+          ))}
+
+          <button type="button" className="linkbtn" onClick={() => addOption(group.id)}>
+            + เพิ่มตัวเลือก
+          </button>
+        </div>
+      ))}
+
+      <button type="button" className="btn" style={{ marginTop: 8 }} onClick={addGroup}>
+        + เพิ่มกลุ่มตัวเลือก
+      </button>
+    </div>
+  );
+}
+
+/**
+ * แก้สูตรอาหาร (BOM) ของเมนู — วัตถุดิบที่ใช้ต่อการขาย 1 หน่วย
+ *
+ * ต้องเพิ่มวัตถุดิบที่หน้า "วัตถุดิบและสต๊อก" ก่อนถึงจะเลือกได้ที่นี่
+ * แถวที่ยังไม่ได้เลือกวัตถุดิบหรือจำนวนเป็น 0 จะถูกตัดทิ้งตอนบันทึก
+ */
+function RecipeEditor({
+  recipe,
+  ingredients,
+  onChange,
+}: {
+  recipe: RecipeLine[];
+  ingredients: Ingredient[];
+  onChange: (recipe: RecipeLine[]) => void;
+}) {
+  function addLine() {
+    if (ingredients.length === 0) return;
+    onChange([...recipe, { ingredientId: ingredients[0]?.id ?? '', qty: 0 }]);
+  }
+
+  function updateLine(index: number, patch: Partial<RecipeLine>) {
+    onChange(recipe.map((r, i) => (i === index ? { ...r, ...patch } : r)));
+  }
+
+  function removeLine(index: number) {
+    onChange(recipe.filter((_, i) => i !== index));
+  }
+
+  return (
+    <div className="field">
+      <span>สูตรอาหาร (BOM) — ไม่บังคับ</span>
+
+      {ingredients.length === 0 ? (
+        <p className="hint">ยังไม่มีวัตถุดิบในระบบ — เพิ่มที่หน้า "วัตถุดิบและสต๊อก" ก่อน</p>
+      ) : (
+        <>
+          {recipe.map((line, i) => {
+            const ingredient = ingredients.find((ing) => ing.id === line.ingredientId);
+            return (
+              <div key={i} className="modgroup__row">
+                <select
+                  value={line.ingredientId}
+                  onChange={(e) => updateLine(i, { ingredientId: e.target.value })}
+                >
+                  {ingredients.map((ing) => (
+                    <option key={ing.id} value={ing.id}>
+                      {ing.name} ({ing.unit})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={line.qty === 0 ? '' : String(line.qty)}
+                  onChange={(e) => updateLine(i, { qty: Number.parseFloat(e.target.value) || 0 })}
+                  inputMode="decimal"
+                  placeholder={`จำนวน (${ingredient?.unit ?? ''})`}
+                  className="modgroup__price"
+                />
+                <button type="button" className="linkbtn linkbtn--danger" onClick={() => removeLine(i)}>
+                  ลบ
+                </button>
+              </div>
+            );
+          })}
+          <button type="button" className="linkbtn" onClick={addLine}>
+            + เพิ่มวัตถุดิบในสูตร
+          </button>
+        </>
+      )}
     </div>
   );
 }

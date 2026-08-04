@@ -1,5 +1,5 @@
-import type { MenuItem, OrderLine, Satang } from '@prakaipos/shared';
-import { newUuid, sumLines } from '@prakaipos/shared';
+import type { MenuItem, OrderLine, Satang, SelectedModifier } from '@prakaipos/shared';
+import { modifiersKey, newUuid, sumLines, sumModifierDeltas } from '@prakaipos/shared';
 
 /**
  * ตะกร้าของหน้าขาย
@@ -21,22 +21,29 @@ export interface CartState {
 
 export const emptyCart: CartState = { lines: [], discount: 0 };
 
+/** ราคาต่อหน่วยรวมตัวเลือกที่เลือก — บวกเข้าไปตอนเพิ่มเพื่อให้ยอดบิลถูกต้องโดยไม่ต้องคำนวณซ้ำที่อื่น */
+export function priceWithModifiers(item: MenuItem, modifiers: readonly SelectedModifier[]): Satang {
+  return item.price + sumModifierDeltas(modifiers);
+}
+
 /**
  * เพิ่มเมนูลงตะกร้า
  *
- * รายการเดียวกันที่หมายเหตุตรงกันจะรวมจำนวน แต่ถ้าหมายเหตุต่างกัน
- * ต้องแยกบรรทัด เพราะครัวต้องทำคนละแบบ
+ * รายการเดียวกันที่หมายเหตุและตัวเลือกที่เลือกตรงกันทุกอย่างจะรวมจำนวน
+ * แต่ถ้าต่างกัน (หมายเหตุ หรือ ตัวเลือก) ต้องแยกบรรทัด เพราะครัวต้องทำคนละแบบ
  */
 export function addItem(
   cart: CartState,
   item: MenuItem,
   qty = 1,
   note = '',
+  modifiers: SelectedModifier[] = [],
 ): CartState {
   if (qty <= 0) return cart;
 
+  const key = modifiersKey(modifiers);
   const idx = cart.lines.findIndex(
-    (l) => l.menuItemId === item.id && l.note === note,
+    (l) => l.menuItemId === item.id && l.note === note && modifiersKey(l.modifiers) === key,
   );
 
   if (idx >= 0) {
@@ -50,9 +57,10 @@ export function addItem(
     clientUuid: newUuid(),
     menuItemId: item.id,
     nameSnapshot: item.name,
-    unitPrice: item.price,
+    unitPrice: priceWithModifiers(item, modifiers),
     qty,
     note,
+    modifiers,
     orderedBy: '',
   };
 
@@ -108,6 +116,30 @@ export function itemCount(cart: CartState): number {
 
 export function isEmpty(cart: CartState): boolean {
   return cart.lines.length === 0;
+}
+
+/**
+ * หารยอดเท่าๆ กันเป็น n ส่วน โดยผลรวมต้องเท่ากับยอดตั้งต้นเป๊ะ
+ *
+ * หน่วยสตางค์เป็นจำนวนเต็ม หารแล้วอาจมีเศษ — เศษสตางค์ยัดให้คนแรกๆ ทีละ 1 สตางค์
+ * ไม่ใช่ปัดทิ้งหรือปัดขึ้นทุกคน มิฉะนั้นยอดรวมจะไม่ตรงกับบิลจริงและเจ้าของร้าน
+ * จับได้ตอนกระทบยอดสิ้นวัน
+ */
+export function splitEvenly(amount: Satang, n: number): Satang[] {
+  if (n <= 0) return [];
+  const base = Math.floor(amount / n);
+  const remainder = amount - base * n;
+  return Array.from({ length: n }, (_, i) => base + (i < remainder ? 1 : 0));
+}
+
+/** แบ่งรายการในตะกร้าออกเป็นหลายบิลย่อยตามกลุ่มที่กำหนด — แต่ละกลุ่มไม่มีส่วนลด (ตั้งส่วนลดทีหลังได้ตอนจ่ายแต่ละบิล) */
+export function splitByGroups(cart: CartState, groupOf: (lineUuid: string) => number, groupCount: number): CartState[] {
+  const groups: CartState[] = Array.from({ length: groupCount }, () => ({ lines: [], discount: 0 }));
+  for (const line of cart.lines) {
+    const g = groupOf(line.clientUuid);
+    if (g >= 0 && g < groupCount) groups[g]?.lines.push(line);
+  }
+  return groups;
 }
 
 /**

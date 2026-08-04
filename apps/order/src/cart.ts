@@ -1,4 +1,5 @@
-import type { Satang } from '@prakaipos/shared';
+import type { Satang, SelectedModifier } from '@prakaipos/shared';
+import { modifiersKey } from '@prakaipos/shared';
 
 /**
  * ตะกร้าของลูกค้า เก็บใน localStorage
@@ -17,6 +18,10 @@ export interface CartLine {
   unitPrice: Satang;
   qty: number;
   note: string;
+  /** เก็บไว้แสดงผลในตะกร้าเท่านั้น — ราคาสุดท้ายเซิร์ฟเวอร์คิดเองจาก modifierOptionIds เสมอ */
+  modifiers: SelectedModifier[];
+  /** id ของตัวเลือกที่เลือกจริง — ส่งไปให้เซิร์ฟเวอร์ตรวจและคิดราคาใหม่ตอนสั่ง (ดู submitOrder.ts) */
+  modifierOptionIds: string[];
 }
 
 const PREFIX = 'prakaipos.cart';
@@ -33,7 +38,9 @@ export function loadCart(shopCode: string, tableNo: string): CartLine[] {
     if (!Array.isArray(parsed)) return [];
     // กรองทิ้งรายการที่รูปแบบไม่ตรง — ข้อมูลใน localStorage อาจเป็นของเวอร์ชันเก่า
     // หรือถูกแก้ด้วยมือ ปล่อยผ่านแล้วหน้าจอจะพังตอน render
-    return parsed.filter(isCartLine);
+    return parsed
+      .filter(isCartLine)
+      .map((l) => ({ ...l, modifiers: l.modifiers ?? [], modifierOptionIds: l.modifierOptionIds ?? [] }));
   } catch {
     // JSON เสีย หรือ localStorage ถูกปิด (โหมดส่วนตัวของ Safari)
     // ทั้งสองกรณีให้เริ่มตะกร้าใหม่ ดีกว่าหน้าขาวทั้งหน้า
@@ -52,7 +59,10 @@ function isCartLine(value: unknown): value is CartLine {
     typeof l.qty === 'number' &&
     Number.isInteger(l.qty) &&
     l.qty > 0 &&
-    typeof l.note === 'string'
+    typeof l.note === 'string' &&
+    // ตะกร้าเก่าก่อนมีตัวเลือกไม่มีฟิลด์นี้ — ถือว่าไม่มีตัวเลือกแทนที่จะทิ้งทั้งบรรทัด
+    (l.modifiers === undefined || Array.isArray(l.modifiers)) &&
+    (l.modifierOptionIds === undefined || Array.isArray(l.modifierOptionIds))
   );
 }
 
@@ -76,13 +86,16 @@ export function clearCart(shopCode: string, tableNo: string): void {
 /**
  * เพิ่มของลงตะกร้า
  *
- * รายการเดียวกันที่ "หมายเหตุตรงกัน" จะรวมจำนวนเข้าด้วยกัน
- * แต่ถ้าหมายเหตุต่างกัน (เผ็ดน้อย vs เผ็ดมาก) ต้องแยกบรรทัด
+ * รายการเดียวกันที่ "หมายเหตุและตัวเลือกที่เลือกตรงกันทุกอย่าง" จะรวมจำนวนเข้าด้วยกัน
+ * แต่ถ้าต่างกัน (หมายเหตุ หรือ ตัวเลือกเช่นเผ็ดน้อย vs เผ็ดมาก) ต้องแยกบรรทัด
  * เพราะครัวต้องทำคนละแบบ
  */
 export function addLine(lines: CartLine[], incoming: CartLine): CartLine[] {
   const idx = lines.findIndex(
-    (l) => l.menuItemId === incoming.menuItemId && l.note === incoming.note,
+    (l) =>
+      l.menuItemId === incoming.menuItemId &&
+      l.note === incoming.note &&
+      modifiersKey(l.modifiers) === modifiersKey(incoming.modifiers),
   );
   if (idx === -1) return [...lines, incoming];
 

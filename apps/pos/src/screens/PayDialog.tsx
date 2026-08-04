@@ -1,7 +1,8 @@
-import type { PaymentMethod } from '@prakaipos/shared';
+import type { Order, PaymentMethod } from '@prakaipos/shared';
 import { formatBaht, parseBahtInput } from '@prakaipos/shared';
 import { useState } from 'react';
 import { PromptPayQR } from '../components/PromptPayQR.js';
+import { enqueue } from '../db/outbox.js';
 import { setDiscount, subtotal, total, type CartState } from '../sell/cart.js';
 import { checkout } from '../sell/checkout.js';
 
@@ -17,8 +18,13 @@ interface PayDialogProps {
   shopId: string;
   staffId: string;
   promptpayId: string;
+  /** เลขโต๊ะ — มีค่าเมื่อบิลนี้แปลงมาจากออร์เดอร์ QR ของโต๊ะนั้น */
+  tableNo?: string;
+  /** รอบนั่งที่บิลนี้มาจาก และ id ของออร์เดอร์ QR ต้นทางที่ต้องปิดพร้อมกัน */
+  tableSessionId?: string;
+  sourceOrderIds?: string[];
   onCancel: () => void;
-  onDone: (orderNo: number) => void;
+  onDone: (order: Order) => void;
   onDiscountChange: (cart: CartState) => void;
 }
 
@@ -30,6 +36,9 @@ export function PayDialog({
   shopId,
   staffId,
   promptpayId,
+  tableNo,
+  tableSessionId,
+  sourceOrderIds,
   onCancel,
   onDone,
   onDiscountChange,
@@ -63,8 +72,35 @@ export function PayDialog({
         cart,
         method,
         received: method === 'cash' ? received : due,
+        tableNo,
+        tableSessionId,
       });
-      onDone(result.order.orderNo);
+
+      // บิลนี้แปลงมาจากออร์เดอร์ QR — ต้องปิดออร์เดอร์ต้นทางกับรอบนั่งด้วย
+      // ผ่านคิวเดียวกับบิลทุกใบ (ไม่เรียกเซิร์ฟเวอร์ตรง) เพื่อให้ทนเน็ตหลุดได้
+      // เหมือนกัน ไม่ใช่แค่บิลใหม่ที่ปลอดภัยแต่ของเก่าค้างสถานะผิด
+      if (sourceOrderIds && sourceOrderIds.length > 0) {
+        for (const id of sourceOrderIds) {
+          await enqueue({
+            collection: 'orders',
+            op: 'update',
+            clientUuid: id,
+            serverId: id,
+            payload: { status: 'paid' },
+          });
+        }
+      }
+      if (tableSessionId) {
+        await enqueue({
+          collection: 'table_sessions',
+          op: 'update',
+          clientUuid: tableSessionId,
+          serverId: tableSessionId,
+          payload: { closed_at: new Date().toISOString() },
+        });
+      }
+
+      onDone(result.order);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'ปิดบิลไม่สำเร็จ');
       setBusy(false);

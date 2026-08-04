@@ -1,3 +1,4 @@
+import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { knownStaff } from '../auth/credentials.js';
 import type { DeviceInfo } from '../auth/device.js';
@@ -125,7 +126,7 @@ export function LockScreen({ device, onUnlock }: LockScreenProps) {
             setError(null);
           }}
         >
-          ← เปลี่ยนคน
+          <ArrowLeft size={16} aria-hidden="true" /> เปลี่ยนคน
         </button>
         <h1 className="lock__who">{selected.displayName}</h1>
         <PinPad onSubmit={handlePin} disabled={busy} error={error} />

@@ -23,6 +23,8 @@ export interface ShopSettings {
   promptpayId: string;
   qrOrderMode: QrOrderMode;
   tablesEnabled: boolean;
+  /** จำนวนโต๊ะ 1..N — 0 แปลว่ายังไม่ได้ตั้งค่าแม้ tablesEnabled จะเป็นจริง */
+  tableCount: number;
   fetchedAt: string;
 }
 
@@ -33,6 +35,7 @@ interface ShopRecord {
   promptpay_id: string;
   qr_order_mode: QrOrderMode;
   tables_enabled: boolean;
+  table_count: number;
 }
 
 export async function getShopSettings(): Promise<ShopSettings | null> {
@@ -62,6 +65,7 @@ export async function refreshShopSettings(
       promptpayId: record.promptpay_id ?? '',
       qrOrderMode: record.qr_order_mode,
       tablesEnabled: record.tables_enabled,
+      tableCount: record.table_count ?? 0,
       fetchedAt: now.toISOString(),
     };
     await setSetting(KEY_SHOP, settings);

@@ -5,11 +5,14 @@ import {
   emptyCart,
   isEmpty,
   itemCount,
+  priceWithModifiers,
   reconcileDiscount,
   removeLine,
   setDiscount,
   setNote,
   setQty,
+  splitByGroups,
+  splitEvenly,
   subtotal,
   total,
 } from './cart.js';
@@ -25,6 +28,8 @@ function menu(id: string, name: string, price: number): MenuItem {
     soldOut: false,
     sortOrder: 0,
     active: true,
+    modifierGroups: [],
+    recipe: [],
     updatedAt: '2026-07-31 09:00:00.000Z',
   };
 }
@@ -87,6 +92,55 @@ describe('addItem', () => {
     addItem(before, iceTea);
 
     expect(before.lines).toHaveLength(1);
+  });
+});
+
+describe('addItem — ตัวเลือก/ท็อปปิ้ง', () => {
+  it('บวกราคาตัวเลือกเข้าไปใน unitPrice', () => {
+    const cart = addItem(emptyCart, kungFried, 1, '', [
+      { groupName: 'ตัวเลือกเพิ่ม', optionName: 'ไข่ดาว', priceDelta: 1000 },
+    ]);
+
+    expect(cart.lines[0]?.unitPrice).toBe(13000);
+  });
+
+  it('ตัวเลือกต่างกันต้องแยกบรรทัดแม้เมนูและหมายเหตุเดียวกัน', () => {
+    let cart = addItem(emptyCart, kungFried, 1, '', [
+      { groupName: 'ความเผ็ด', optionName: 'น้อย', priceDelta: 0 },
+    ]);
+    cart = addItem(cart, kungFried, 1, '', [
+      { groupName: 'ความเผ็ด', optionName: 'มาก', priceDelta: 0 },
+    ]);
+
+    expect(cart.lines).toHaveLength(2);
+  });
+
+  it('ตัวเลือกชุดเดียวกัน (ไม่สนลำดับ) รวมจำนวนเข้าบรรทัดเดียว', () => {
+    let cart = addItem(emptyCart, kungFried, 1, '', [
+      { groupName: 'ความเผ็ด', optionName: 'มาก', priceDelta: 0 },
+      { groupName: 'เพิ่ม', optionName: 'ไข่ดาว', priceDelta: 1000 },
+    ]);
+    cart = addItem(cart, kungFried, 1, '', [
+      { groupName: 'เพิ่ม', optionName: 'ไข่ดาว', priceDelta: 1000 },
+      { groupName: 'ความเผ็ด', optionName: 'มาก', priceDelta: 0 },
+    ]);
+
+    expect(cart.lines).toHaveLength(1);
+    expect(cart.lines[0]?.qty).toBe(2);
+  });
+});
+
+describe('priceWithModifiers', () => {
+  it('รวมราคาเมนูกับผลรวมส่วนต่างของทุกตัวเลือก', () => {
+    const price = priceWithModifiers(kungFried, [
+      { groupName: 'เพิ่ม', optionName: 'ไข่ดาว', priceDelta: 1000 },
+      { groupName: 'เพิ่ม', optionName: 'กุ้งเพิ่ม', priceDelta: 2000 },
+    ]);
+    expect(price).toBe(15000);
+  });
+
+  it('ไม่มีตัวเลือกก็เท่ากับราคาเมนูเฉยๆ', () => {
+    expect(priceWithModifiers(kungFried, [])).toBe(12000);
   });
 });
 
@@ -208,5 +262,44 @@ describe('reconcileDiscount', () => {
   it('ไม่แตะส่วนลดที่ยังไม่เกินยอด', () => {
     const cart = setDiscount(addItem(emptyCart, kungFried), 2000);
     expect(reconcileDiscount(cart)).toBe(cart);
+  });
+});
+
+describe('splitEvenly', () => {
+  it('หารลงตัวได้เท่ากันทุกคน', () => {
+    expect(splitEvenly(30000, 3)).toEqual([10000, 10000, 10000]);
+  });
+
+  it('หารไม่ลงตัว — ยัดเศษสตางค์ให้คนแรกๆ ทีละ 1 สตางค์ ผลรวมต้องตรงเป๊ะ', () => {
+    const shares = splitEvenly(10000, 3);
+    expect(shares).toEqual([3334, 3333, 3333]);
+    expect(shares.reduce((a, b) => a + b, 0)).toBe(10000);
+  });
+
+  it('n เป็น 0 หรือติดลบ คืนอาร์เรย์ว่าง', () => {
+    expect(splitEvenly(10000, 0)).toEqual([]);
+    expect(splitEvenly(10000, -1)).toEqual([]);
+  });
+});
+
+describe('splitByGroups', () => {
+  it('แบ่งรายการตามกลุ่มที่กำหนด', () => {
+    const cart = addItem(addItem(emptyCart, kungFried), iceTea);
+    const [kungLine, teaLine] = cart.lines;
+    const groups = splitByGroups(
+      cart,
+      (uuid) => (uuid === kungLine?.clientUuid ? 0 : 1),
+      2,
+    );
+
+    expect(groups).toHaveLength(2);
+    expect(groups[0]?.lines).toEqual([kungLine]);
+    expect(groups[1]?.lines).toEqual([teaLine]);
+  });
+
+  it('กลุ่มที่ไม่มีรายการเป็นตะกร้าว่าง ไม่ใช่ undefined', () => {
+    const cart = addItem(emptyCart, kungFried);
+    const groups = splitByGroups(cart, () => 0, 2);
+    expect(groups[1]).toEqual({ lines: [], discount: 0 });
   });
 });

@@ -1,3 +1,4 @@
+import { CircleCheck, Download } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   applyPendingUpdate,
@@ -21,7 +22,9 @@ export function UpdateBanner() {
 
   if (state === 'offline_ready') {
     return (
-      <div className="updatebar updatebar--ok">พร้อมใช้งานแบบออฟไลน์แล้ว</div>
+      <div className="updatebar updatebar--ok">
+        <CircleCheck size={16} aria-hidden="true" /> พร้อมใช้งานแบบออฟไลน์แล้ว
+      </div>
     );
   }
 
@@ -36,7 +39,7 @@ export function UpdateBanner() {
           void applyPendingUpdate();
         }}
       >
-        {applying ? 'กำลังอัปเดต…' : 'อัปเดตตอนนี้'}
+        <Download size={14} aria-hidden="true" /> {applying ? 'กำลังอัปเดต…' : 'อัปเดตตอนนี้'}
       </button>
     </div>
   );

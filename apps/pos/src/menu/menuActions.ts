@@ -1,4 +1,4 @@
-import type { Satang } from '@prakaipos/shared';
+import type { ModifierGroup, RecipeLine, Satang } from '@prakaipos/shared';
 import { db } from '../db/db.js';
 import { enqueue } from '../db/outbox.js';
 import { pb } from '../sync/pb.js';
@@ -93,6 +93,8 @@ export interface MenuItemInput {
   sortOrder: number;
   /** รูปที่เลือกจากเครื่อง — ไม่ใส่ก็ได้ */
   image?: File | null;
+  modifierGroups?: ModifierGroup[];
+  recipe?: RecipeLine[];
 }
 
 /**
@@ -100,15 +102,20 @@ export interface MenuItemInput {
  *
  * PocketBase รับได้ทั้งสองแบบ แต่ FormData จำเป็นเมื่อมีไฟล์
  * และ JSON อ่านง่ายกว่าตอน debug จึงใช้เท่าที่จำเป็น
+ *
+ * ฟิลด์ JSON (เช่น modifier_groups) ต้อง stringify เองก่อนใส่ลง FormData
+ * เพราะช่องของฟอร์มเป็นข้อความล้วน — ต่างจากส่ง object ตรงๆ ที่ SDK แปลงให้เอง
  */
 function buildPayload(
   base: Record<string, string | number | boolean>,
   image?: File | null,
+  jsonFields?: Record<string, unknown>,
 ): FormData | Record<string, unknown> {
-  if (!image) return base;
+  if (!image) return { ...base, ...jsonFields };
 
   const form = new FormData();
   for (const [k, v] of Object.entries(base)) form.append(k, String(v));
+  for (const [k, v] of Object.entries(jsonFields ?? {})) form.append(k, JSON.stringify(v));
   form.append('image', image);
   return form;
 }
@@ -130,6 +137,7 @@ export async function createMenuItem(
         active: true,
       },
       input.image,
+      { modifier_groups: input.modifierGroups ?? [], recipe: input.recipe ?? [] },
     ),
   );
   await pullMenu(shopId, { forceFullSweep: true });
@@ -149,7 +157,13 @@ export async function updateMenuItem(
   if (patch.sortOrder !== undefined) base.sort_order = patch.sortOrder;
   if (patch.active !== undefined) base.active = patch.active;
 
-  await pb.collection('menu_items').update(id, buildPayload(base, patch.image));
+  const jsonFields: Record<string, unknown> = {};
+  if (patch.modifierGroups !== undefined) jsonFields.modifier_groups = patch.modifierGroups;
+  if (patch.recipe !== undefined) jsonFields.recipe = patch.recipe;
+
+  await pb
+    .collection('menu_items')
+    .update(id, buildPayload(base, patch.image, Object.keys(jsonFields).length ? jsonFields : undefined));
   await pullMenu(shopId, { forceFullSweep: true });
 }
 

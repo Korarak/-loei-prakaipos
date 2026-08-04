@@ -95,6 +95,18 @@ routerAdd('GET', '/api/public/table-session/:shopCode/:tableNo', (c) => {
     session = record;
   });
 
+  // ออร์เดอร์ที่ยังไม่จบของรอบนั่งนี้ (pending/open) — ส่งกลับไปด้วยเสมอ
+  // เพื่อให้ลูกค้าที่รีเฟรชหน้าหรือปิดเปิดแท็บใหม่ยังเห็นว่าตัวเองสั่งอะไรไปแล้ว
+  // แทนที่จะเจอหน้าเมนูเปล่าทั้งที่ครัวมีออร์เดอร์ค้างอยู่จริง (เสี่ยงสั่งซ้ำ)
+  const activeOrders = dao.findRecordsByFilter(
+    'orders',
+    'table_session = {:session} && (status="pending" || status="open")',
+    'created',
+    50,
+    0,
+    { session: session.id },
+  );
+
   return c.json(200, {
     sessionId: session.id,
     shopId: shop.id,
@@ -102,6 +114,12 @@ routerAdd('GET', '/api/public/table-session/:shopCode/:tableNo', (c) => {
     tableNo,
     openedAt: session.getString('opened_at'),
     qrOrderMode: shop.getString('qr_order_mode'),
+    activeOrders: activeOrders.map((o) => ({
+      orderNo: o.getInt('order_no'),
+      status: o.getString('status'),
+      lines: o.get('lines'),
+      total: o.getInt('total'),
+    })),
   });
 });
 
@@ -200,14 +218,49 @@ routerAdd('POST', '/api/public/orders', (c) => {
     const note = typeof raw?.note === 'string' ? raw.note.slice(0, 200) : '';
     const orderedBy = typeof raw?.orderedBy === 'string' ? raw.orderedBy.slice(0, 40) : '';
 
+    // ── ตัวเลือก/ท็อปปิ้ง — ตรวจกับ modifier_groups ของเมนูจริง ห้ามเชื่อชื่อ/ราคาจากไคลเอนต์ ──
+    //
+    // record.get() บนฟิลด์ type "json" ใน PocketBase JSVM (v0.22) **ไม่คืนอ็อบเจกต์
+    // ที่ deserialize แล้ว** แต่คืนค่าดิบที่ดูเหมือนอาร์เรย์ของไบต์ (Array.isArray
+    // เป็น true, มี .length ตรงกับจำนวนไบต์ แต่ groups[0].name เป็น undefined เสมอ)
+    // ต้องแปลงเป็นสตริงด้วย String()/.toString() ก่อนแล้วค่อย JSON.parse() เอง
+    // ทดสอบยืนยันแล้วผ่าน route debug ชั่วคราว — ไม่งั้นตัวเลือกที่ลูกค้าเลือก
+    // จะหายเงียบๆ ทุกครั้ง (ราคายังถูกต้องหรือผิดขึ้นกับว่า group นั้นบวกราคาไหม
+    // แต่ modifiers ที่บันทึกจะว่างเปล่าเสมอ เพราะ for-loop วิ่งทับอาร์เรย์ไบต์
+    // แทนที่จะเป็นอาร์เรย์กลุ่มตัวเลือก)
+    const requestedOptionIds = Array.isArray(raw?.modifierOptionIds)
+      ? raw.modifierOptionIds.filter((x) => typeof x === 'string')
+      : [];
+    const rawGroups = item.get('modifier_groups');
+    const groups = rawGroups ? JSON.parse(String(rawGroups)) : [];
+    const modifiers = [];
+    let unitPrice = item.getInt('price');
+
+    for (const group of groups) {
+      const chosen = (group.options || []).filter((o) => requestedOptionIds.includes(o.id));
+      if (group.required && chosen.length === 0) {
+        throw new BadRequestError(
+          `กรุณาเลือก "${group.name}" ของเมนู ${item.getString('name')} ก่อนสั่ง`,
+        );
+      }
+      if (!group.multiple && chosen.length > 1) {
+        throw new BadRequestError(`เลือก "${group.name}" ของเมนู ${item.getString('name')} ได้แค่ตัวเดียว`);
+      }
+      for (const opt of chosen) {
+        unitPrice += opt.priceDelta;
+        modifiers.push({ groupName: group.name, optionName: opt.name, priceDelta: opt.priceDelta });
+      }
+    }
+
     lines.push({
       clientUuid: $security.randomString(32),
       menuItemId: item.id,
       // ชื่อและราคามาจากฐานข้อมูล ณ เวลานี้เท่านั้น — จุดที่กันไคลเอนต์โกงราคา
       nameSnapshot: item.getString('name'),
-      unitPrice: item.getInt('price'),
+      unitPrice,
       qty,
       note,
+      modifiers,
       orderedBy,
     });
   }

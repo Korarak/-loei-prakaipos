@@ -34,6 +34,8 @@ export interface CheckoutInput {
   received: Satang;
   /** เลขโต๊ะ — ว่างได้สำหรับร้านตามสั่ง */
   tableNo?: string;
+  /** รอบนั่งที่บิลนี้มาจาก QR order — ว่างได้สำหรับบิลที่พนักงานคีย์เอง */
+  tableSessionId?: string;
 }
 
 export interface CheckoutResult {
@@ -63,7 +65,7 @@ export async function checkout(
   input: CheckoutInput,
   now: Date = new Date(),
 ): Promise<CheckoutResult> {
-  const { shopId, staffId, cart, method, received, tableNo = '' } = input;
+  const { shopId, staffId, cart, method, received, tableNo = '', tableSessionId = '' } = input;
 
   if (cart.lines.length === 0) {
     throw new Error('บิลว่าง ยังปิดไม่ได้');
@@ -96,7 +98,7 @@ export async function checkout(
     channel: 'pos',
     status: 'paid',
     tableNo,
-    tableSessionId: '',
+    tableSessionId,
     lines: cart.lines,
     subtotal: subtotal(cart),
     discount: cart.discount,

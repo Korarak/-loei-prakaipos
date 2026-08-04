@@ -30,13 +30,16 @@ const OK: SendResult = { ok: true };
 const NET_DOWN: SendResult = { ok: false, retryable: true, error: 'เน็ตหลุด' };
 const BAD_DATA: SendResult = { ok: false, retryable: false, error: 'ข้อมูลไม่ถูกต้อง' };
 
-async function enqueueOrder(uuid: string, orderNo: number) {
-  return enqueue({
-    collection: 'orders',
-    op: 'create',
-    clientUuid: uuid,
-    payload: { client_uuid: uuid, order_no: orderNo },
-  });
+async function enqueueOrder(uuid: string, orderNo: number, now?: Date) {
+  return enqueue(
+    {
+      collection: 'orders',
+      op: 'create',
+      clientUuid: uuid,
+      payload: { client_uuid: uuid, order_no: orderNo },
+    },
+    now,
+  );
 }
 
 beforeEach(async () => {
@@ -155,7 +158,7 @@ describe('flushOutbox — เน็ตหลุด', () => {
 
   it('เลื่อนเวลาลองใหม่ออกไปตาม backoff', async () => {
     const now = new Date('2026-07-31T10:00:00.000Z');
-    await enqueueOrder('uuid-1', 1001);
+    await enqueueOrder('uuid-1', 1001, now);
 
     await flushOutbox(fakeSender([NET_DOWN]), { now, random: () => 0.5 });
 
@@ -167,7 +170,7 @@ describe('flushOutbox — เน็ตหลุด', () => {
 
   it('ยังไม่ถึงเวลาลองใหม่ก็ไม่ยิงเซิร์ฟเวอร์ซ้ำ', async () => {
     const t0 = new Date('2026-07-31T10:00:00.000Z');
-    await enqueueOrder('uuid-1', 1001);
+    await enqueueOrder('uuid-1', 1001, t0);
     await flushOutbox(fakeSender([NET_DOWN]), { now: t0, random: () => 0.5 });
 
     // ผ่านไปแค่ 1 วินาที ยังไม่ถึงกำหนด 2 วินาที
@@ -182,7 +185,7 @@ describe('flushOutbox — เน็ตหลุด', () => {
 
   it('ถึงเวลาแล้วส่งใหม่ได้สำเร็จ', async () => {
     const t0 = new Date('2026-07-31T10:00:00.000Z');
-    await enqueueOrder('uuid-1', 1001);
+    await enqueueOrder('uuid-1', 1001, t0);
     await flushOutbox(fakeSender([NET_DOWN]), { now: t0, random: () => 0.5 });
 
     const result = await flushOutbox(fakeSender([OK]), {

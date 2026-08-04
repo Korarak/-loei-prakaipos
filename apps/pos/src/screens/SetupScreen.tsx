@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { buildDevice, saveDevice } from '../auth/device.js';
 import { login } from '../auth/session.js';
 import { pb } from '../sync/pb.js';
+import { SignupScreen } from './SignupScreen.js';
 
 /**
  * หน้าตั้งค่าเครื่องครั้งแรก — ทำครั้งเดียวตอนไปติดตั้งที่ร้าน
@@ -21,11 +22,27 @@ interface DeviceRecord {
 }
 
 export function SetupScreen({ onDone }: { onDone: () => void }) {
+  const [signingUp, setSigningUp] = useState(false);
   const [shopCode, setShopCode] = useState('');
   const [pin, setPin] = useState('');
   const [deviceName, setDeviceName] = useState('แท็บเล็ตหน้าร้าน');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  if (signingUp) {
+    return (
+      <SignupScreen
+        onCancel={() => setSigningUp(false)}
+        onDone={(newShopCode, newPin) => {
+          // สมัครร้านสำเร็จแล้ว — เติมรหัสร้าน+PIN ที่เพิ่งตั้งให้ทันที
+          // เจ้าของร้านกดปุ่มเดียวต่อเพื่อตั้งค่าเครื่องนี้ ไม่ต้องพิมพ์ซ้ำ
+          setShopCode(newShopCode);
+          setPin(newPin);
+          setSigningUp(false);
+        }}
+      />
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -149,6 +166,16 @@ export function SetupScreen({ onDone }: { onDone: () => void }) {
 
         <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
           {busy ? 'กำลังตั้งค่า…' : 'ตั้งค่าเครื่อง'}
+        </button>
+
+        <button
+          type="button"
+          className="linkbtn"
+          style={{ marginTop: 8 }}
+          onClick={() => setSigningUp(true)}
+          disabled={busy}
+        >
+          ยังไม่มีร้าน? สมัครร้านใหม่
         </button>
 
         <p className="hint">ขั้นตอนนี้ต้องต่ออินเทอร์เน็ต</p>

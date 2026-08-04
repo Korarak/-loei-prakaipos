@@ -3,30 +3,11 @@
  *
  * ออกแบบสำหรับมือถือเป็นหลัก และต้องอ่านง่ายในร้านที่แสงไม่ดี
  * ทุกอย่างเรียบง่ายโดยตั้งใจ — ยิ่งหน้าเบา ยิ่งเปิดเร็วตอนสัญญาณอ่อน
+ *
+ * โทเค็นสี/ระยะห่าง/เงา/จังหวะ animation อยู่ที่ packages/shared/src/tokens.css
  */
 
-:root {
-  --bg: #fbfaf8;
-  --panel: #fff;
-  --ink: #1c1c1e;
-  --ink2: #5c5c66;
-  --line: #e3e0da;
-  --accent: #b8562f;
-  --ok: #1f6f5c;
-  --thai: 'Noto Sans Thai', 'Sarabun', 'Leelawadee UI', 'Segoe UI', system-ui, sans-serif;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #151517;
-    --panel: #1e1e21;
-    --ink: #eceae6;
-    --ink2: #a3a0a8;
-    --line: #33333a;
-    --accent: #e2865c;
-    --ok: #5fb89f;
-  }
-}
+@import '../../../packages/shared/src/tokens.css';
 
 * {
   box-sizing: border-box;
@@ -145,17 +126,25 @@ body {
 
 .page__body {
   padding: 8px 16px;
+  animation: fade-in var(--dur-base) var(--ease-out);
 }
 
 .notice {
+  display: flex;
+  gap: var(--sp-2);
   background: color-mix(in srgb, var(--ok) 12%, transparent);
   color: var(--ok);
   font-weight: 600;
   font-size: 14px;
   line-height: 1.5;
-  border-radius: 12px;
-  padding: 12px 14px;
+  border-radius: var(--r-md);
+  padding: var(--sp-3) var(--sp-4);
   margin: 8px 0 16px;
+}
+
+.notice__icon {
+  flex-shrink: 0;
+  margin-top: 2px;
 }
 
 .cartbar__error {
@@ -182,22 +171,31 @@ body {
 .item {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--sp-3);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px 12px;
+  border-radius: var(--r-md);
+  padding: var(--sp-2) var(--sp-3);
+  box-shadow: var(--shadow-1);
 }
 
-.item--out {
-  opacity: 0.55;
+/* ของหมด — ไม่พึ่ง opacity ของทั้งแถวอย่างเดียว เพราะป้ายจะจางจนอ่านยากไปด้วย
+   ตอนร้านแสงไม่ดี (ดูคอมเมนต์หัวไฟล์) จึงหรี่เฉพาะรูป/ชื่อ/ราคา ส่วนป้ายคงชัดเจนเต็มที่ */
+.item--out .item__img {
+  filter: grayscale(1);
+  opacity: 0.5;
+}
+
+.item--out .item__name,
+.item--out .item__price {
+  color: var(--ink2);
 }
 
 .item__img {
   width: 56px;
   height: 56px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   flex-shrink: 0;
 }
 
@@ -218,9 +216,13 @@ body {
 }
 
 .item__out {
-  font-size: 13px;
-  color: var(--accent);
-  font-weight: 600;
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink2);
+  background: var(--line);
+  border-radius: var(--r-pill);
+  padding: 4px 10px;
   white-space: nowrap;
 }
 
@@ -240,6 +242,21 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform var(--dur-base) var(--ease-out), opacity var(--dur-base) var(--ease-out);
+}
+
+.cartbar--entering,
+.cartbar--leaving {
+  transform: translateY(100%);
+  opacity: 0;
+}
+
+.cartbar__summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .cartbar__lines {
@@ -298,4 +315,104 @@ body {
   gap: 12px;
   border-top: 1px solid var(--line);
   padding-top: 10px;
+}
+
+/* ── ตัวเลือก/ท็อปปิ้ง ── */
+
+.sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  background: #0006;
+  animation: sheet-backdrop-in var(--dur-fast) var(--ease-out);
+}
+
+.sheet__panel {
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--panel);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding: var(--sp-5) var(--sp-4) max(var(--sp-5), env(safe-area-inset-bottom));
+  animation: sheet-panel-in var(--dur-base) var(--ease-out);
+}
+
+@keyframes sheet-backdrop-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes sheet-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+
+.sheet__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.sheet__close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--r-pill);
+  background: var(--chip);
+  color: var(--ink2);
+  cursor: pointer;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 18px 0;
+  font-size: 14px;
+  color: var(--ink2);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  font: inherit;
+  font-size: 14px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.chip--on {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.sheet__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.item__mods {
+  font-size: 12.5px;
+  color: var(--ink2);
 }

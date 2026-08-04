@@ -1,7 +1,10 @@
 export type {
   Category,
+  Ingredient,
   IsoDateTime,
   MenuItem,
+  ModifierGroup,
+  ModifierOption,
   Order,
   OrderChannel,
   OrderLine,
@@ -10,10 +13,14 @@ export type {
   Payment,
   PaymentMethod,
   QrOrderMode,
+  RecipeLine,
   Satang,
+  SelectedModifier,
   Shop,
   Staff,
   StaffRole,
+  StockMovement,
+  StockMovementType,
   TableSession,
 } from './types.js';
 
@@ -46,3 +53,8 @@ export {
   takeOrderNo,
 } from './ids.js';
 export type { OrderNoRange } from './ids.js';
+
+export { modifiersKey, sumModifierDeltas } from './modifiers.js';
+
+export { useMountTransition } from './useMountTransition.js';
+export type { MountTransitionStage } from './useMountTransition.js';

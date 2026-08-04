@@ -102,6 +102,7 @@ async function seedShop(token, { code, name, promptpayId, tablesEnabled, deviceI
       promptpay_id: promptpayId,
       qr_order_mode: 'staff_confirm',
       tables_enabled: tablesEnabled,
+      table_count: tablesEnabled ? 12 : 0,
       // กุญแจลับสำหรับเซ็นลายเซ็นลิงก์โต๊ะ — ร้านจริงจะสุ่มครั้งเดียวตอนเปิดบัญชี
       qr_secret: randomBytes(24).toString('hex'),
     },

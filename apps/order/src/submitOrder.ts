@@ -27,6 +27,7 @@ export async function submitOrder(
           menuItemId: l.menuItemId,
           qty: l.qty,
           note: l.note,
+          modifierOptionIds: l.modifierOptionIds,
         })),
       }),
     });

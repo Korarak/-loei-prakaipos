@@ -1,3 +1,4 @@
+import { Delete } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 /**
@@ -92,7 +93,7 @@ export function PinPad({ length = 4, disabled = false, onSubmit, error }: PinPad
           onClick={backspace}
           aria-label="ลบหนึ่งหลัก"
         >
-          ⌫
+          <Delete size={22} aria-hidden="true" />
         </button>
       </div>
     </div>

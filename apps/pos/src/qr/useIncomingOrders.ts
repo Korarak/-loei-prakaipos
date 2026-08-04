@@ -1,4 +1,4 @@
-import type { Satang } from '@prakaipos/shared';
+import type { Satang, SelectedModifier } from '@prakaipos/shared';
 import { useEffect, useRef, useState } from 'react';
 import { pb } from '../sync/pb.js';
 import { playOrderChime } from './notificationSound.js';
@@ -16,16 +16,22 @@ import { playOrderChime } from './notificationSound.js';
  */
 
 interface OrderLineRecord {
+  menuItemId: string;
+  clientUuid: string;
   nameSnapshot: string;
   qty: number;
   note: string;
   unitPrice: Satang;
+  orderedBy: string;
+  /** ว่างได้ — บิลเก่าก่อนมีตัวเลือกไม่มีฟิลด์นี้ */
+  modifiers?: SelectedModifier[];
 }
 
 export interface IncomingOrder {
   id: string;
   orderNo: number;
   tableNo: string;
+  tableSessionId: string;
   lines: OrderLineRecord[];
   total: Satang;
   status: 'pending' | 'open';
@@ -39,6 +45,7 @@ interface OrderRecord {
   status: string;
   order_no: number;
   table_no: string;
+  table_session: string;
   lines: OrderLineRecord[];
   total: number;
   created: string;
@@ -49,6 +56,7 @@ function toIncoming(r: OrderRecord): IncomingOrder {
     id: r.id,
     orderNo: r.order_no,
     tableNo: r.table_no,
+    tableSessionId: r.table_session,
     lines: r.lines,
     total: r.total,
     status: r.status as 'pending' | 'open',

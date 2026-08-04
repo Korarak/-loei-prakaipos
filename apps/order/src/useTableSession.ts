@@ -12,12 +12,28 @@ import { pb } from './pb.js';
  * ไม่ควรเห็นอะไรเลยนอกจากข้อความว่าลิงก์ผิด
  */
 
+export interface ActiveOrderLine {
+  nameSnapshot: string;
+  qty: number;
+  note: string;
+  unitPrice: number;
+}
+
+export interface ActiveOrder {
+  orderNo: number;
+  status: 'pending' | 'open';
+  lines: ActiveOrderLine[];
+  total: number;
+}
+
 export interface TableSession {
   sessionId: string;
   shopId: string;
   shopName: string;
   tableNo: string;
   qrOrderMode: 'auto' | 'staff_confirm';
+  /** ออร์เดอร์ที่ยังไม่จบของรอบนั่งนี้ ณ ตอนโหลดหน้า — กันลูกค้ารีเฟรชแล้วมองไม่เห็นว่าสั่งไปแล้ว */
+  activeOrders: ActiveOrder[];
 }
 
 export interface TableSessionState {

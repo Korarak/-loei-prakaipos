@@ -29,6 +29,8 @@ export interface Shop {
   qrOrderMode: QrOrderMode;
   /** ร้านนั่งทานเปิดผังโต๊ะ ร้านตามสั่งปิด */
   tablesEnabled: boolean;
+  /** จำนวนโต๊ะ 1..N สำหรับวาดผังโต๊ะ — 0 = ยังไม่ได้ตั้งค่า */
+  tableCount: number;
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
 }
@@ -74,7 +76,43 @@ export interface MenuItem {
   soldOut: boolean;
   sortOrder: number;
   active: boolean;
+  /** ตัวเลือก/ท็อปปิ้ง เช่น ระดับความเผ็ด, ใส่ไข่ดาว — ว่างได้สำหรับเมนูที่ไม่มีตัวเลือก */
+  modifierGroups: ModifierGroup[];
+  /** สูตร (BOM) — วัตถุดิบที่ใช้ต่อการขาย 1 หน่วย — ว่างได้ถ้ายังไม่ได้ตั้งต้นทุน */
+  recipe: RecipeLine[];
   updatedAt: IsoDateTime;
+}
+
+export interface RecipeLine {
+  ingredientId: string;
+  /** จำนวนวัตถุดิบที่ใช้ต่อการขายเมนูนี้ 1 หน่วย ในหน่วยเดียวกับ Ingredient.unit */
+  qty: number;
+}
+
+export interface ModifierOption {
+  /** สร้างจากเครื่องตอนแก้เมนู ใช้แค่ระบุตัวตนภายในกลุ่มเดียวกันตอนแก้ไข ไม่ใช่ id ฝั่งเซิร์ฟเวอร์ */
+  id: string;
+  name: string;
+  /** บวกเพิ่มจากราคาเมนู — ใส่ 0 ได้สำหรับตัวเลือกที่ไม่คิดเงินเพิ่ม เช่น ระดับความเผ็ด */
+  priceDelta: Satang;
+}
+
+export interface ModifierGroup {
+  id: string;
+  /** เช่น "ระดับความเผ็ด", "ตัวเลือกเพิ่ม" */
+  name: string;
+  /** ต้องเลือกอย่างน้อยหนึ่งตัวเลือกก่อนเพิ่มลงตะกร้าได้ */
+  required: boolean;
+  /** เลือกได้หลายตัวเลือก (เช็คบ็อกซ์) หรือเลือกได้ตัวเดียว (ปุ่มตัวเลือก) */
+  multiple: boolean;
+  options: ModifierOption[];
+}
+
+/** ตัวเลือกที่ลูกค้า/พนักงานเลือกไว้ตอนเพิ่มลงตะกร้า — เก็บชื่อ ณ เวลาสั่ง เหมือน nameSnapshot */
+export interface SelectedModifier {
+  groupName: string;
+  optionName: string;
+  priceDelta: Satang;
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -101,8 +139,10 @@ export interface OrderLine {
   nameSnapshot: string;
   unitPrice: Satang;
   qty: number;
-  /** หมายเหตุจากลูกค้า เช่น "เผ็ดน้อย ไม่ใส่ผักชี" */
+  /** หมายเหตุจากลูกค้า เช่น "ไม่ใส่ผักชี" — สำหรับคำขอที่ไม่ได้อยู่ในตัวเลือกที่ร้านตั้งไว้ */
   note: string;
+  /** ตัวเลือก/ท็อปปิ้งที่เลือกไว้ — ราคารวมอยู่ใน unitPrice แล้ว ไม่ต้องบวกซ้ำตอนคิดยอด */
+  modifiers: SelectedModifier[];
   /** ชื่อเล่นคนสั่ง (เฉพาะช่องทาง QR ที่หลายคนสั่งในโต๊ะเดียว) — สมัครใจ */
   orderedBy: string;
 }
@@ -155,6 +195,37 @@ export interface TableSession {
   openedAt: IsoDateTime;
   /** ว่าง = รอบยังเปิดอยู่ · มีค่า = ปิดบิลแล้ว token ของลูกค้าหมดอายุทันที */
   closedAt: IsoDateTime | null;
+}
+
+// ─────────────────────────────────────────────────────────────
+// วัตถุดิบและสต๊อก
+// ─────────────────────────────────────────────────────────────
+
+export interface Ingredient {
+  id: string;
+  shopId: string;
+  name: string;
+  /** หน่วยอิสระ เช่น "กรัม", "มล.", "ชิ้น" */
+  unit: string;
+  /** คงเหลือปัจจุบัน — เป็นทศนิยมได้ ไม่ใช่เงิน */
+  stockQty: number;
+  /** ต้นทุนต่อ 1 หน่วย เป็นสตางค์ */
+  costPerUnit: Satang;
+  active: boolean;
+  updatedAt: IsoDateTime;
+}
+
+export type StockMovementType = 'receive' | 'deduct' | 'count';
+
+export interface StockMovement {
+  id: string;
+  shopId: string;
+  ingredientId: string;
+  type: StockMovementType;
+  /** ส่วนต่างที่เปลี่ยนจริง (บวก = เพิ่ม, ลบ = ลด) */
+  qtyDelta: number;
+  note: string;
+  createdAt: IsoDateTime;
 }
 
 // ─────────────────────────────────────────────────────────────

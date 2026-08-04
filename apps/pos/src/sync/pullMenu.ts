@@ -1,4 +1,4 @@
-import type { Category, MenuItem } from '@prakaipos/shared';
+import type { Category, MenuItem, ModifierGroup, RecipeLine } from '@prakaipos/shared';
 import { db, getSetting, setSetting } from '../db/db.js';
 import { pb } from './pb.js';
 
@@ -45,6 +45,8 @@ interface MenuItemRecord {
   sold_out: boolean;
   sort_order: number;
   active: boolean;
+  modifier_groups: ModifierGroup[] | null;
+  recipe: RecipeLine[] | null;
   updated: string;
   collectionId: string;
 }
@@ -80,6 +82,8 @@ function toMenuItem(r: MenuItemRecord): MenuItem {
     soldOut: r.sold_out,
     sortOrder: r.sort_order,
     active: r.active,
+    modifierGroups: r.modifier_groups ?? [],
+    recipe: r.recipe ?? [],
     updatedAt: r.updated,
   };
 }
@@ -186,10 +190,20 @@ export async function readLocalMenu(shopId: string): Promise<{
   categories: Category[];
   items: MenuItem[];
 }> {
-  const [categories, items] = await Promise.all([
+  const [categories, rawItems] = await Promise.all([
     db.categories.where('shopId').equals(shopId).toArray(),
     db.menuItems.where('shopId').equals(shopId).toArray(),
   ]);
+
+  // เครื่องที่แคชเมนูไว้ตั้งแต่ก่อนมีฟิลด์ modifierGroups/recipe จะมีเรกคอร์ด
+  // ที่ไม่มีสองฟิลด์นี้เลย (ไม่ใช่ null — undefined เพราะ IndexedDB ไม่บังคับ
+  // schema) จนกว่าจะถูกดึงทับจากเซิร์ฟเวอร์อีกครั้ง เติมค่าว่างกันไว้ตรงนี้
+  // เพื่อไม่ให้โค้ดที่เรียก item.recipe.length พังทั้งที่ยังไม่ทันซิงก์ใหม่
+  const items = rawItems.map((i) => ({
+    ...i,
+    modifierGroups: i.modifierGroups ?? [],
+    recipe: i.recipe ?? [],
+  }));
 
   return {
     categories: categories.sort((a, b) => a.sortOrder - b.sortOrder),

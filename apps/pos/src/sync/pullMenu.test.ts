@@ -204,6 +204,8 @@ describe('pullMenu — รายการที่ถูกลบ', () => {
       soldOut: false,
       sortOrder: 0,
       active: true,
+      modifierGroups: [],
+      recipe: [],
       updatedAt: '2026-07-31 09:00:00.000Z',
     });
 

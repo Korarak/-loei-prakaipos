@@ -1,3 +1,4 @@
+import { Cloud, RefreshCw, TriangleAlert, WifiOff } from 'lucide-react';
 import type { SyncState } from '../sync/useSync.js';
 
 /**
@@ -11,7 +12,7 @@ export function SyncBadge({ state, onRetry }: { state: SyncState; onRetry: () =>
   if (state.blocked) {
     return (
       <div className="sync sync--blocked" role="alert">
-        <span className="sync__dot" />
+        <TriangleAlert size={15} aria-hidden="true" />
         <span>
           ส่งข้อมูลไม่ได้ {state.pending} รายการ — กรุณาติดต่อผู้ดูแลระบบ
         </span>
@@ -23,7 +24,7 @@ export function SyncBadge({ state, onRetry }: { state: SyncState; onRetry: () =>
   if (!state.online) {
     return (
       <div className="sync sync--offline">
-        <span className="sync__dot" />
+        <WifiOff size={15} aria-hidden="true" />
         <span>
           ออฟไลน์ — ขายต่อได้ตามปกติ
           {state.pending > 0 && ` · ค้างส่ง ${state.pending} รายการ`}
@@ -35,7 +36,7 @@ export function SyncBadge({ state, onRetry }: { state: SyncState; onRetry: () =>
   if (state.pending > 0) {
     return (
       <div className="sync sync--pending">
-        <span className="sync__dot" />
+        <RefreshCw size={15} aria-hidden="true" className={state.syncing ? 'sync__spin' : undefined} />
         <span>กำลังส่งข้อมูล {state.pending} รายการ</span>
         <button type="button" onClick={onRetry} disabled={state.syncing}>
           ส่งเดี๋ยวนี้
@@ -50,7 +51,7 @@ export function SyncBadge({ state, onRetry }: { state: SyncState; onRetry: () =>
   // การพูดเกินกว่าที่รู้คือสิ่งที่ทำลายความเชื่อถือของเจ้าของร้าน
   return (
     <div className="sync sync--ok">
-      <span className="sync__dot" />
+      <Cloud size={15} aria-hidden="true" />
       <span>
         {state.lastSyncAt
           ? `ข้อมูลตรงกับคลาวด์แล้ว · ล่าสุด ${state.lastSyncAt.toLocaleTimeString(

@@ -1,0 +1,98 @@
+/*
+ * โทเค็นดีไซน์ร่วมของ pos / order / admin
+ *
+ * ค่าเดิมเคย copy วางซ้ำ 3 ที่จนเริ่มเพี้ยนไม่ตรงกัน (order/admin ขาดบางตัวที่ pos มี)
+ * ย้ายมารวมที่นี่ที่เดียว แต่ละแอป @import ไฟล์นี้แทนการก็อปปี้ค่าลง :root เอง
+ */
+
+:root {
+  --bg: #fbfaf8;
+  --panel: #fff;
+  --ink: #1c1c1e;
+  --ink2: #5c5c66;
+  --line: #e3e0da;
+  --accent: #b8562f;
+  --ok: #1f6f5c;
+  --warn: #8a6d1f;
+  --chip: #f2efe9;
+  --accent-glow: #b8562f12;
+  --thai: 'Noto Sans Thai', 'Sarabun', 'Leelawadee UI', 'Segoe UI', system-ui, sans-serif;
+
+  /* ขนาดเป้าสัมผัสขั้นต่ำ — ต่ำกว่านี้พลาดง่ายตอนรีบ */
+  --touch: 48px;
+
+  /* ระยะห่าง — ฐาน 4px */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 48px;
+
+  /* ความโค้งมุม */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-pill: 999px;
+
+  /* เงา — ใช้แทนความเรียบเพื่อแยกชั้นการ์ด/ปุ่มออกจากพื้นหลังชัดขึ้น
+     เป็นเงาแบบนิ่งเท่านั้น ห้ามใช้ transform/translate ตอน hover หรือ active
+     กับปุ่มที่กดซ้ำๆ (โดยเฉพาะใน apps/pos) — พนักงานกดตำแหน่งเดิมซ้ำๆ ตอนรีบ
+     ปุ่มขยับแม้เล็กน้อยจะกดพลาด */
+  --shadow-1: 0 1px 3px #1c1c1e12;
+  --shadow-2: 0 1px 2px #1c1c1e0a, 0 6px 16px -8px #1c1c1e26;
+  --shadow-3: 0 8px 30px -6px #1c1c1e33;
+
+  /* จังหวะ animation — เร็วและนิ่ง ไม่มี bounce/spring */
+  --dur-fast: 150ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #151517;
+    --panel: #1e1e21;
+    --ink: #eceae6;
+    --ink2: #a3a0a8;
+    --line: #33333a;
+    --accent: #e2865c;
+    --ok: #5fb89f;
+    --warn: #d9b45c;
+    --chip: #27272b;
+    --accent-glow: #e2865c1a;
+    --shadow-1: 0 1px 3px #00000030;
+    --shadow-2: 0 1px 2px #00000030, 0 8px 20px -8px #00000055;
+    --shadow-3: 0 12px 40px -8px #00000066;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fade-in var(--dur-base) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

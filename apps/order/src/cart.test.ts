@@ -17,6 +17,8 @@ function line(over: Partial<CartLine> = {}): CartLine {
     unitPrice: 12000,
     qty: 1,
     note: '',
+    modifiers: [],
+    modifierOptionIds: [],
     ...over,
   };
 }
@@ -47,6 +49,35 @@ describe('addLine', () => {
     const original = [line()];
     addLine(original, line({ menuItemId: 'm2' }));
     expect(original).toHaveLength(1);
+  });
+
+  it('ตัวเลือกต่างกันต้องแยกบรรทัดแม้หมายเหตุเหมือนกัน', () => {
+    const result = addLine(
+      [line({ modifiers: [{ groupName: 'ความเผ็ด', optionName: 'น้อย', priceDelta: 0 }] })],
+      line({ modifiers: [{ groupName: 'ความเผ็ด', optionName: 'มาก', priceDelta: 0 }] }),
+    );
+    expect(result).toHaveLength(2);
+  });
+
+  it('ตัวเลือกชุดเดียวกัน (ไม่สนลำดับ) รวมจำนวนเข้าบรรทัดเดียว', () => {
+    const result = addLine(
+      [
+        line({
+          modifiers: [
+            { groupName: 'ความเผ็ด', optionName: 'มาก', priceDelta: 0 },
+            { groupName: 'เพิ่ม', optionName: 'ไข่ดาว', priceDelta: 1000 },
+          ],
+        }),
+      ],
+      line({
+        modifiers: [
+          { groupName: 'เพิ่ม', optionName: 'ไข่ดาว', priceDelta: 1000 },
+          { groupName: 'ความเผ็ด', optionName: 'มาก', priceDelta: 0 },
+        ],
+      }),
+    );
+    expect(result).toHaveLength(1);
+    expect(result[0]?.qty).toBe(2);
   });
 });
 

@@ -1,4 +1,4 @@
-import type { Satang } from '@prakaipos/shared';
+import type { ModifierGroup, Satang } from '@prakaipos/shared';
 import { useEffect, useState } from 'react';
 import { pb } from './pb.js';
 
@@ -9,6 +9,7 @@ export interface PublicMenuItem {
   price: Satang;
   imageUrl: string;
   soldOut: boolean;
+  modifierGroups: ModifierGroup[];
 }
 
 export interface PublicCategory {
@@ -35,6 +36,7 @@ interface MenuItemRecord {
   price: number;
   sold_out: boolean;
   image: string;
+  modifier_groups: ModifierGroup[] | null;
   collectionId: string;
 }
 
@@ -90,6 +92,7 @@ export function useMenu(shopId: string): MenuState {
                 // ขอรูปย่อ 600px แทนรูปเต็ม — หน้านี้ต้องเปิดเร็วบนสัญญาณอ่อน
                 imageUrl: i.image ? pb.files.getURL(i, i.image, { thumb: '600x0' }) : '',
                 soldOut: i.sold_out,
+                modifierGroups: i.modifier_groups ?? [],
               })),
           }))
           // หมวดที่ไม่มีเมนูเลยไม่ต้องแสดง ทำให้ลูกค้าเลื่อนหาน้อยลง

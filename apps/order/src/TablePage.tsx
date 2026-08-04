@@ -1,4 +1,5 @@
-import { formatBaht } from '@prakaipos/shared';
+import { formatBaht, useMountTransition } from '@prakaipos/shared';
+import { CircleCheck, ShoppingCart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -10,9 +11,10 @@ import {
   setQty,
   type CartLine,
 } from './cart.js';
+import { ModifierPicker } from './ModifierPicker.js';
 import { submitOrder } from './submitOrder.js';
-import { useMenu } from './useMenu.js';
-import { useTableSession } from './useTableSession.js';
+import { useMenu, type PublicMenuItem } from './useMenu.js';
+import { useTableSession, type ActiveOrder } from './useTableSession.js';
 
 /**
  * หน้าสั่งอาหารประจำโต๊ะ
@@ -32,14 +34,34 @@ export function TablePage() {
   const [lines, setLines] = useState<CartLine[]>(() => loadCart(shopCode, tableNo));
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [lastOrder, setLastOrder] = useState<{ orderNo: number; status: string } | null>(
-    null,
-  );
+  // เมนูที่กำลังเลือกตัวเลือก/ท็อปปิ้งอยู่ — ว่างสำหรับเมนูที่ไม่มีตัวเลือก
+  const [pickingItem, setPickingItem] = useState<PublicMenuItem | null>(null);
+  // ออร์เดอร์ที่ยังไม่จบของรอบนั่งนี้ — seed จากเซิร์ฟเวอร์ตอนโหลดหน้า (ไม่ใช่
+  // แค่จำสิ่งที่เพิ่งส่งไปในหน่วยความจำ) เพื่อให้รีเฟรชหน้าแล้วยังเห็นออร์เดอร์เดิม
+  const [activeOrders, setActiveOrders] = useState<ActiveOrder[]>([]);
+
+  useEffect(() => {
+    if (session.session) {
+      setActiveOrders(session.session.activeOrders);
+    }
+  }, [session.session]);
 
   // เก็บตะกร้าทุกครั้งที่เปลี่ยน เพื่อให้สลับไปตอบแชทแล้วกลับมาของยังอยู่
   useEffect(() => {
     saveCart(shopCode, tableNo, lines);
   }, [shopCode, tableNo, lines]);
+
+  const count = cartCount(lines);
+  // เรียก hook นี้ก่อน early return เสมอ (กฎของ React hooks) — หน่วงการถอด
+  // แถบตะกร้าออกจาก DOM ไว้ให้ทันเล่น transition ตอนตะกร้าว่างแล้วซ่อนแถบ
+  const cartTransition = useMountTransition(count > 0, 200);
+  // จำรายการล่าสุดตอนตะกร้ายังไม่ว่าง ไว้ให้แถบตะกร้าเลื่อนหายไปพร้อมเนื้อหาเดิม
+  // แทนที่จะโล่งเปล่าอยู่ครู่หนึ่งระหว่างเล่น transition ตอนกดสั่งสำเร็จ
+  const [lastLines, setLastLines] = useState<CartLine[]>(lines);
+  useEffect(() => {
+    if (lines.length > 0) setLastLines(lines);
+  }, [lines]);
+  const cartbarLines = count > 0 ? lines : lastLines;
 
   if (session.loading) {
     return <div className="center">กำลังตรวจสอบลิงก์…</div>;
@@ -82,13 +104,12 @@ export function TablePage() {
     );
   }
 
-  const count = cartCount(lines);
-
   async function handleSubmit() {
     setSubmitting(true);
     setSubmitError(null);
 
-    const result = await submitOrder(session.session!.sessionId, lines);
+    const submittedLines = lines;
+    const result = await submitOrder(session.session!.sessionId, submittedLines);
 
     setSubmitting(false);
     if (!result.ok) {
@@ -96,7 +117,22 @@ export function TablePage() {
       return;
     }
 
-    setLastOrder({ orderNo: result.orderNo, status: result.status });
+    // เพิ่มเข้ารายการที่มีอยู่แบบ optimistic — ไม่ต้องขอเซิร์ฟเวอร์ใหม่
+    // เพราะรู้ผลลัพธ์ครบอยู่แล้วจากคำตอบของ submitOrder
+    setActiveOrders((cur) => [
+      ...cur,
+      {
+        orderNo: result.orderNo,
+        status: result.status,
+        lines: submittedLines.map((l) => ({
+          nameSnapshot: l.name,
+          qty: l.qty,
+          note: l.note,
+          unitPrice: l.unitPrice,
+        })),
+        total: cartTotal(submittedLines),
+      },
+    ]);
     setLines([]);
     saveCart(shopCode, tableNo, []);
   }
@@ -111,13 +147,20 @@ export function TablePage() {
       </header>
 
       <main className="page__body">
-        {lastOrder && (
+        {activeOrders.length > 0 && (
           <div className="notice">
-            {lastOrder.status === 'pending'
-              ? 'ส่งออร์เดอร์แล้ว กำลังรอร้านยืนยัน'
-              : 'ส่งออร์เดอร์เข้าครัวแล้ว'}
-            <br />
-            สั่งเพิ่มได้เลยถ้ายังหิว — จะไปรวมบิลเดียวกันตอนจ่ายเงิน
+            <CircleCheck size={18} className="notice__icon" aria-hidden="true" />
+            <div>
+              {activeOrders.map((o) => (
+                <div key={o.orderNo} className="notice__order">
+                  {o.status === 'pending' ? 'ส่งออร์เดอร์แล้ว กำลังรอร้านยืนยัน' : 'ส่งออร์เดอร์เข้าครัวแล้ว'}
+                  {' — '}
+                  {o.lines.map((l) => `${l.qty}× ${l.nameSnapshot}`).join(', ')} ({formatBaht(o.total)})
+                </div>
+              ))}
+              <br />
+              สั่งเพิ่มได้เลยถ้ายังหิว — จะไปรวมบิลเดียวกันตอนจ่ายเงิน
+            </div>
           </div>
         )}
 
@@ -140,7 +183,12 @@ export function TablePage() {
                     <button
                       type="button"
                       className="btn"
-                      onClick={() =>
+                      onClick={() => {
+                        // เมนูที่มีตัวเลือกต้องเลือกก่อนเสมอ แม้ทุกกลุ่มจะไม่บังคับ
+                        if (item.modifierGroups.length > 0) {
+                          setPickingItem(item);
+                          return;
+                        }
                         setLines((cur) =>
                           addLine(cur, {
                             menuItemId: item.id,
@@ -148,9 +196,11 @@ export function TablePage() {
                             unitPrice: item.price,
                             qty: 1,
                             note: '',
+                            modifiers: [],
+                            modifierOptionIds: [],
                           }),
-                        )
-                      }
+                        );
+                      }}
                     >
                       เพิ่ม
                     </button>
@@ -162,11 +212,11 @@ export function TablePage() {
         ))}
       </main>
 
-      {count > 0 && (
-        <footer className="cartbar">
+      {cartTransition.shouldRender && (
+        <footer className={`cartbar cartbar--${cartTransition.stage}`}>
           <ul className="cartbar__lines">
-            {lines.map((l, i) => (
-              <li key={`${l.menuItemId}-${l.note}`}>
+            {cartbarLines.map((l, i) => (
+              <li key={`${l.menuItemId}-${l.note}-${l.modifierOptionIds.join(',')}`}>
                 <button
                   type="button"
                   className="qty"
@@ -184,7 +234,12 @@ export function TablePage() {
                 >
                   +
                 </button>
-                <span className="cartbar__name">{l.name}</span>
+                <span className="cartbar__name">
+                  {l.name}
+                  {l.modifiers.length > 0 && (
+                    <span className="item__mods"> ({l.modifiers.map((m) => m.optionName).join(', ')})</span>
+                  )}
+                </span>
                 <span className="cartbar__sum">{formatBaht(l.unitPrice * l.qty)}</span>
               </li>
             ))}
@@ -193,19 +248,41 @@ export function TablePage() {
           {submitError && <p className="error cartbar__error">{submitError}</p>}
 
           <div className="cartbar__foot">
-            <span>
-              รวม {count} รายการ · <b>{formatBaht(cartTotal(lines))}</b>
+            <span className="cartbar__summary">
+              <ShoppingCart size={16} aria-hidden="true" />
+              รวม {cartCount(cartbarLines)} รายการ · <b>{formatBaht(cartTotal(cartbarLines))}</b>
             </span>
             <button
               type="button"
               className="btn btn--primary"
-              disabled={submitting}
+              disabled={submitting || count === 0}
               onClick={() => void handleSubmit()}
             >
               {submitting ? 'กำลังส่ง…' : 'สั่งอาหาร'}
             </button>
           </div>
         </footer>
+      )}
+
+      {pickingItem && (
+        <ModifierPicker
+          item={pickingItem}
+          onCancel={() => setPickingItem(null)}
+          onConfirm={(modifiers, modifierOptionIds) => {
+            setLines((cur) =>
+              addLine(cur, {
+                menuItemId: pickingItem.id,
+                name: pickingItem.name,
+                unitPrice: pickingItem.price + modifiers.reduce((s, m) => s + m.priceDelta, 0),
+                qty: 1,
+                note: '',
+                modifiers,
+                modifierOptionIds,
+              }),
+            );
+            setPickingItem(null);
+          }}
+        />
       )}
     </div>
   );

@@ -8,28 +8,45 @@
 :root{
   --bg:#fbfaf8; --panel:#fff; --ink:#1c1c1e; --ink2:#5c5c66; --line:#e3e0da;
   --accent:#b8562f; --accent2:#1f6f5c; --warn:#8a6d1f; --chip:#f2efe9;
+  --accentglow:#b8562f14; --shadow:0 1px 2px #1c1c1e08, 0 8px 24px -12px #1c1c1e1c;
+  --shadowsm:0 1px 3px #1c1c1e0f;
   --mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
   --thai:"Noto Sans Thai","Sarabun","Leelawadee UI","Segoe UI",system-ui,sans-serif;
 }
 @media (prefers-color-scheme:dark){
   :root{--bg:#151517;--panel:#1e1e21;--ink:#eceae6;--ink2:#a3a0a8;--line:#33333a;
-  --accent:#e2865c;--accent2:#5fb89f;--warn:#d9b45c;--chip:#27272b;}
+  --accent:#e2865c;--accent2:#5fb89f;--warn:#d9b45c;--chip:#27272b;
+  --accentglow:#e2865c1c;--shadow:0 1px 2px #00000030, 0 10px 28px -12px #00000060;--shadowsm:0 1px 3px #00000030;}
 }
-:root[data-theme="dark"]{--bg:#151517;--panel:#1e1e21;--ink:#eceae6;--ink2:#a3a0a8;--line:#33333a;--accent:#e2865c;--accent2:#5fb89f;--warn:#d9b45c;--chip:#27272b;}
-:root[data-theme="light"]{--bg:#fbfaf8;--panel:#fff;--ink:#1c1c1e;--ink2:#5c5c66;--line:#e3e0da;--accent:#b8562f;--accent2:#1f6f5c;--warn:#8a6d1f;--chip:#f2efe9;}
+:root[data-theme="dark"]{--bg:#151517;--panel:#1e1e21;--ink:#eceae6;--ink2:#a3a0a8;--line:#33333a;--accent:#e2865c;--accent2:#5fb89f;--warn:#d9b45c;--chip:#27272b;
+  --accentglow:#e2865c1c;--shadow:0 1px 2px #00000030, 0 10px 28px -12px #00000060;--shadowsm:0 1px 3px #00000030;}
+:root[data-theme="light"]{--bg:#fbfaf8;--panel:#fff;--ink:#1c1c1e;--ink2:#5c5c66;--line:#e3e0da;--accent:#b8562f;--accent2:#1f6f5c;--warn:#8a6d1f;--chip:#f2efe9;
+  --accentglow:#b8562f14;--shadow:0 1px 2px #1c1c1e08, 0 8px 24px -12px #1c1c1e1c;--shadowsm:0 1px 3px #1c1c1e0f;}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--thai);
+body{margin:0;background:
+  radial-gradient(1200px 520px at 50% -180px, var(--accentglow), transparent 70%),
+  var(--bg);
+  color:var(--ink);font-family:var(--thai);
   font-size:16px;line-height:1.72;-webkit-text-size-adjust:100%}
 .wrap{max-width:1080px;margin:0 auto;padding:0 20px 96px}
 header.hero{padding:52px 0 30px;border-bottom:1px solid var(--line)}
-.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700}
+.eyebrow{display:inline-flex;align-items:center;gap:7px;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--accent);font-weight:700}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent2);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent2) 22%, transparent)}
 h1{font-size:clamp(27px,4.2vw,42px);line-height:1.2;margin:12px 0 10px;letter-spacing:-.01em}
 .sub{color:var(--ink2);font-size:17px;max-width:64ch;margin:0}
 .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
-.chip{background:var(--chip);border:1px solid var(--line);border-radius:999px;
-  padding:5px 13px;font-size:12.5px;color:var(--ink2)}
-h2{font-size:clamp(21px,2.6vw,28px);margin:54px 0 6px;letter-spacing:-.01em;scroll-margin-top:20px}
-h2 .num{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px;font-size:.8em}
+.chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;
+  padding:5px 13px;font-size:12.5px;color:var(--ink2);box-shadow:var(--shadowsm);
+  transition:transform .15s ease, box-shadow .15s ease}
+.chip:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.chip.chip--done{color:var(--accent2);border-color:color-mix(in srgb, var(--accent2) 35%, var(--line))}
+h2{font-size:clamp(21px,2.6vw,28px);margin:54px 0 6px;letter-spacing:-.01em;scroll-margin-top:20px;
+  padding-bottom:10px;border-bottom:1px solid var(--line)}
+h2 .num{display:inline-flex;align-items:center;justify-content:center;min-width:1.5em;
+  color:#fff;background:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px;
+  font-size:.55em;font-family:var(--mono);border-radius:7px;padding:3px 7px;vertical-align:middle}
 h3{font-size:18px;margin:30px 0 6px}
 h4{font-size:14px;margin:22px 0 4px;color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
 p{margin:10px 0}
@@ -39,13 +56,17 @@ ul,ol{padding-left:22px;margin:10px 0}
 li{margin:5px 0}
 code{font-family:var(--mono);font-size:.86em;background:var(--chip);
   padding:2px 6px;border-radius:5px;border:1px solid var(--line)}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 21px;margin:16px 0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 21px;
+  margin:16px 0;box-shadow:var(--shadow);transition:box-shadow .2s ease, transform .2s ease}
 .grid{display:grid;gap:14px}
 @media(min-width:760px){.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}}
-.tw{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.tw{overflow-x:auto;margin:16px 0;border:1px solid var(--line);border-radius:12px;background:var(--panel);
+  box-shadow:var(--shadow)}
 table{border-collapse:collapse;width:100%;min-width:540px;font-size:14.5px}
 th,td{padding:9px 13px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
 th{background:var(--chip);font-weight:700;font-size:13px;white-space:nowrap;letter-spacing:.02em}
+tbody tr{transition:background-color .12s ease}
+tbody tr:hover{background:var(--accentglow)}
 tbody tr:last-child td{border-bottom:none}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-family:var(--mono);font-size:13.5px}
 tfoot td{font-weight:700;background:var(--chip);border-top:2px solid var(--accent)}
@@ -53,32 +74,52 @@ tfoot td{font-weight:700;background:var(--chip);border-top:2px solid var(--accen
 .t-1{background:#b8562f22;color:var(--accent);border:1px solid #b8562f55}
 .t-2{background:#1f6f5c22;color:var(--accent2);border:1px solid #1f6f5c55}
 .t-3{background:#8a6d1f22;color:var(--warn);border:1px solid #8a6d1f55}
+.status{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;
+  white-space:nowrap}
+.status::before{content:"";width:7px;height:7px;border-radius:50%;flex:none}
+.status--done{color:var(--accent2)}
+.status--done::before{background:var(--accent2)}
+.status--wait{color:var(--ink2)}
+.status--wait::before{background:var(--ink2);opacity:.5}
 .callout{border-left:3px solid var(--accent);background:var(--panel);
-  border-radius:0 12px 12px 0;padding:14px 18px;margin:18px 0}
+  border-radius:0 12px 12px 0;padding:14px 18px;margin:18px 0;box-shadow:var(--shadow)}
 .callout.ok{border-left-color:var(--accent2)}
 .callout.warn{border-left-color:var(--warn)}
 .callout b:first-child{display:block;margin-bottom:3px}
-nav.toc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 22px;margin:26px 0}
+nav.toc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 22px;
+  margin:26px 0;box-shadow:var(--shadow)}
 nav.toc ol{columns:2;column-gap:32px;margin:6px 0 0;padding-left:20px;font-size:14.5px}
 @media(max-width:700px){nav.toc ol{columns:1}}
-nav.toc a{text-decoration:none;color:var(--ink)}
+nav.toc li{padding:2px 0}
+nav.toc a{text-decoration:none;color:var(--ink);transition:color .12s ease}
 nav.toc a:hover{color:var(--accent);text-decoration:underline}
 .arch{display:grid;gap:9px;margin:18px 0}
-.layer{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel)}
+.layer{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel);
+  box-shadow:var(--shadow)}
 .layer>.lh{font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
   color:var(--accent);margin-bottom:9px}
 .boxes{display:flex;flex-wrap:wrap;gap:8px}
 .box{border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:13px;
-  background:var(--chip);flex:1 1 150px;min-width:128px}
+  background:var(--chip);flex:1 1 150px;min-width:128px;transition:transform .15s ease,box-shadow .15s ease}
+.box:hover{transform:translateY(-2px);box-shadow:var(--shadowsm)}
 .box b{display:block;font-size:13.5px}
 .box span{color:var(--ink2);font-size:11.5px;line-height:1.45;display:block}
+.meter{margin:14px 0}
+.meter__head{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;
+  color:var(--ink2);margin-bottom:6px}
+.meter__head b{color:var(--ink);font-size:14.5px}
+.meter__track{height:10px;border-radius:999px;background:var(--chip);overflow:hidden;
+  border:1px solid var(--line)}
+.meter__fill{height:100%;border-radius:999px;
+  background:linear-gradient(90deg, var(--accent2), color-mix(in srgb, var(--accent2) 70%, var(--accent)));
+  box-shadow:0 0 10px color-mix(in srgb, var(--accent2) 45%, transparent)}
 .flowdown{text-align:center;color:var(--ink2);font-size:14px;line-height:1.4;margin:-1px 0}
 .steps{counter-reset:s;list-style:none;padding:0;margin:16px 0}
 .steps>li{counter-increment:s;position:relative;padding:0 0 15px 42px;border-left:2px solid var(--line);margin-left:14px}
 .steps>li:last-child{border-left-color:transparent;padding-bottom:0}
 .steps>li::before{content:counter(s);position:absolute;left:-15px;top:0;width:28px;height:28px;
   border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;
-  font-size:13px;font-weight:700;font-family:var(--mono)}
+  font-size:13px;font-weight:700;font-family:var(--mono);box-shadow:0 0 0 4px var(--bg), var(--shadowsm)}
 .steps b{display:block}
 .steps span{color:var(--ink2);font-size:14px}
 .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14.5px;margin:10px 0}
@@ -89,7 +130,8 @@ nav.toc a:hover{color:var(--accent);text-decoration:underline}
 footer{border-top:1px solid var(--line);margin-top:60px;padding-top:22px;color:var(--ink2);font-size:13.5px}
 .themebtn{position:fixed;right:16px;bottom:16px;z-index:9;background:var(--panel);
   border:1px solid var(--line);border-radius:999px;padding:9px 15px;font:inherit;font-size:13px;
-  color:var(--ink);cursor:pointer;box-shadow:0 3px 14px #0002}
+  color:var(--ink);cursor:pointer;box-shadow:var(--shadow);transition:transform .15s ease}
+.themebtn:hover{transform:translateY(-2px)}
 .calcgrid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));margin-bottom:18px}
 .calcgrid label{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--ink2)}
 .calcgrid input{font:inherit;font-size:15px;font-family:var(--mono);padding:8px 11px;
@@ -114,7 +156,7 @@ footer{border-top:1px solid var(--line);margin-top:60px;padding-top:22px;color:v
 <div class="wrap">
 
 <header class="hero">
-  <div class="eyebrow">เอกสารออกแบบ · v2.0 · ปรับตามขอบเขตจริง</div>
+  <div class="eyebrow">เอกสารออกแบบ · v2.1 · อัปเดตตามความคืบหน้าจริง</div>
   <h1>PrakaiPOS — POS ร้านอาหารเล็ก<br>ทำเป็นเว็บ ใช้แท็บเล็ตที่มีอยู่ ปีละ 1,900 ฿</h1>
   <p class="sub">ระบบขายหน้าร้านสำหรับร้านอาหารเล็กใน จ.เลย พัฒนาโดยคนเดียว
   เปิดจากเบราว์เซอร์ไม่ต้องลงแอป ทำงานตอนเน็ตหลุดได้ และมีระบบสั่งอาหารผ่าน QR Code รวมในราคาหลัก</p>
@@ -122,16 +164,29 @@ footer{border-top:1px solid var(--line);margin-top:60px;padding-top:22px;color:v
     <span class="chip">👤 นักพัฒนา 1 คน</span>
     <span class="chip">💻 PWA — ไม่ต้องผ่าน App Store</span>
     <span class="chip">💵 ต้นทุนเริ่มต้น ~4,000 ฿/ปี</span>
-    <span class="chip">📦 ก้อนแรก 52 คน-วัน</span>
-    <span class="chip">🗓️ 30 ก.ค. 2569</span>
+    <span class="chip chip--done">✅ ก้อนที่ 1 · 50/52 คน-วันเสร็จแล้ว</span>
+    <span class="chip">🗓️ ปรับปรุงล่าสุด 31 ก.ค. 2569</span>
   </div>
 </header>
+
+<div class="callout ok">
+  <b>สถานะล่าสุด — ขายได้จริงแล้ว กำลังปิดท้ายก้อนที่ 1</b>
+  <div class="meter">
+    <div class="meter__head"><span>ก้อนที่ 1 — ขายได้จริง</span><b>96%</b></div>
+    <div class="meter__track"><div class="meter__fill" style="width:96%"></div></div>
+  </div>
+  เข้าระบบด้วย PIN · จัดการเมนู · จัดการพนักงาน · หน้าขาย (เงินสด/พร้อมเพย์) · ออฟไลน์ + ซิงก์ ·
+  <b>QR Order ครบวงจรถึงขั้นปิดบิลจริง</b> (ลูกค้าสั่ง → ครัวยืนยันแบบ realtime →
+  พนักงานกดรับเงินรวมบิลจากแผงออร์เดอร์ได้เลย ไม่ต้องคีย์ซ้ำ) และ <b>แดชบอร์ดยอดขายวันนี้ + เมนูขายดี</b>
+  ใช้งานได้จริงและทดสอบแล้วทั้งหมด เหลือแค่<b>เอาไปให้ร้านนำร่องใช้จริง</b> ก่อนจะปิดก้อนที่ 1 (ดูหัวข้อ 06)
+</div>
 
 <div class="callout warn">
   <b>เอกสารนี้แก้จาก v1.0 อย่างมีนัยสำคัญ</b>
   ฉบับก่อนออกแบบสำหรับธุรกิจ 200–1,000 สาขา งบพัฒนา 3.4 ล้านบาท ทีม 6 คน บน AWS
   ซึ่ง<b>ไม่ตรงกับขอบเขตจริง</b> และมีข้อผิดพลาดทางเทคนิคเรื่อง "ให้เครื่อง POS ทำหน้าที่เซิร์ฟเวอร์ในร้าน"
-  ซึ่งใช้กับ iPad ไม่ได้ (ดูหัวข้อ 03) ฉบับนี้แก้ทั้งสองเรื่องแล้ว
+  ซึ่งใช้กับ iPad ไม่ได้ (ดูหัวข้อ 03) ฉบับนี้แก้ทั้งสองเรื่องแล้ว และตอนนี้ทั้งสถาปัตยกรรมนี้
+  ได้ลงมือสร้างจริงจนขายได้แล้ว ไม่ใช่แค่แผนบนกระดาษอีกต่อไป
 </div>
 
 <nav class="toc">
@@ -444,62 +499,97 @@ footer{border-top:1px solid var(--line);margin-top:60px;padding-top:22px;color:v
 <p class="lede">แบ่งเป็น 3 ก้อน ก้อนแรกต้องเล็กพอที่จะได้เห็นร้านจริงใช้งานภายใน 2–3 เดือน
 ไม่ใช่ 8 เดือน เพราะความเสี่ยงใหญ่ที่สุดคือสร้างของที่ไม่มีใครใช้</p>
 
-<h3><span class="tag t-1">ก้อนที่ 1</span> ขายได้จริง — 52 คน-วัน</h3>
+<h3><span class="tag t-1">ก้อนที่ 1</span> ขายได้จริง — 52 คน-วัน <span class="status status--done" style="margin-left:8px">50/52 เสร็จแล้ว</span></h3>
 <div class="tw">
 <table>
-<thead><tr><th>งาน</th><th class="n">คน-วัน</th><th>รายละเอียด</th></tr></thead>
+<thead><tr><th>งาน</th><th class="n">คน-วัน</th><th>สถานะ</th><th>รายละเอียด</th></tr></thead>
 <tbody>
 <tr><td>ตั้งโครงโปรเจกต์ + PWA shell + PocketBase + deploy</td><td class="n">5</td>
+  <td><span class="status status--done">เสร็จ</span></td>
   <td>ตั้ง VPS, โดเมน, Cloudflare, CI ง่ายๆ, ทำให้ติดตั้งลงหน้าจอโฮมได้</td></tr>
 <tr><td>เข้าระบบด้วย PIN + ข้อมูลร้าน + พนักงาน</td><td class="n">4</td>
-  <td>ยังไม่ต้องมีสิทธิ์ซับซ้อน แค่แยกเจ้าของกับพนักงาน</td></tr>
+  <td><span class="status status--done">เสร็จ</span></td>
+  <td>ยังไม่ต้องมีสิทธิ์ซับซ้อน แค่แยกเจ้าของกับพนักงาน ทำงานได้ทั้งออนไลน์/ออฟไลน์</td></tr>
 <tr><td>เมนู + หมวด + จัดการจากหลังบ้าน</td><td class="n">7</td>
-  <td>ยังไม่ต้องมีตัวเลือก/ท็อปปิ้ง อัปโหลดรูปได้</td></tr>
+  <td><span class="status status--done">เสร็จ</span></td>
+  <td>ยังไม่ต้องมีตัวเลือก/ท็อปปิ้ง อัปโหลดรูปได้ มีปุ่ม "ของหมด" ใช้ได้ตอนออฟไลน์</td></tr>
 <tr><td><b>หน้าขาย</b> — เลือกเมนู ตะกร้า คิดเงินสด เงินทอน</td><td class="n">10</td>
+  <td><span class="status status--done">เสร็จ</span></td>
   <td>งานหนักที่สุด ต้องกดถูกตอนรีบ ปุ่มใหญ่ ไม่มี dropdown</td></tr>
 <tr><td>PromptPay QR</td><td class="n">3</td>
+  <td><span class="status status--done">เสร็จ</span></td>
   <td>สร้าง payload EMVCo ในเครื่อง แสดง QR ตามยอดบิล — ยังไม่ยืนยันการจ่ายอัตโนมัติ</td></tr>
 <tr><td>ออฟไลน์ Dexie + คิวส่ง (outbox) + ซิงก์</td><td class="n">8</td>
-  <td>หัวใจของระบบ ต้องทดสอบหนัก</td></tr>
+  <td><span class="status status--done">เสร็จ</span></td>
+  <td>หัวใจของระบบ ทดสอบแล้วว่าปิด Wi-Fi กลางบิลไม่ทำให้ข้อมูลหาย</td></tr>
 <tr><td><b>QR Order</b> — เว็บให้ลูกค้าสั่งเอง</td><td class="n">9</td>
-  <td>จุดขายหลัก ต้องมีตั้งแต่ก้อนแรก</td></tr>
+  <td><span class="status status--done">เสร็จ</span></td>
+  <td>จุดขายหลัก ครบวงจรถึงขั้นปิดบิล — ลูกค้าสั่งแล้วรีเฟรชหน้าไม่หลุด (คงสถานะออร์เดอร์
+  ข้ามการรีโหลด กันสั่งซ้ำ) และพนักงานกดรับเงินรวมบิลจากแผงออร์เดอร์ QR ได้ตรงๆ
+  ไม่ต้องคีย์รายการซ้ำในหน้าขาย</td></tr>
 <tr><td>รายงานยอดขายรายวัน + เมนูขายดี</td><td class="n">4</td>
-  <td>เจ้าของร้านดูจากมือถือได้</td></tr>
+  <td><span class="status status--done">เสร็จ</span></td>
+  <td>เจ้าของร้านดูยอดวันนี้ + เมนูขายดีจากแดชบอร์ดในแอปได้เลย (ดึงจากคลาวด์ตรง
+  ครอบคลุมทุกเครื่องในร้าน) — เพิ่มหน้า "จัดการพนักงาน" ให้เจ้าของร้านเข้าไปด้วย
+  (เพิ่มคน/ตั้ง PIN ใหม่/ปิดใช้งาน) ซึ่งไม่ได้ตีราคาไว้แต่แรกแต่จำเป็นก่อนส่งร้านนำร่องใช้จริง</td></tr>
 <tr><td>ทดสอบ + ติดตั้งร้านนำร่อง</td><td class="n">2</td>
-  <td>ไปนั่งดูเขาใช้จริงที่ร้าน</td></tr>
+  <td><span class="status status--wait">ยังไม่ทำ</span></td>
+  <td>ไปนั่งดูเขาใช้จริงที่ร้าน — งานที่เหลืออยู่ก่อนจะปิดก้อนที่ 1 ได้จริง</td></tr>
 </tbody>
-<tfoot><tr><td>รวมก้อนที่ 1</td><td class="n">52</td>
-  <td>ทำเต็มเวลา ≈ 2.5 เดือน · ทำวันละ 3 ชม. ≈ 6 เดือน</td></tr></tfoot>
+<tfoot><tr><td>รวมก้อนที่ 1</td><td class="n">52</td><td colspan="2">
+  ทำเต็มเวลา ≈ 2.5 เดือน · ทำวันละ 3 ชม. ≈ 6 เดือน · <b>ทำไปแล้ว 50 คน-วัน (96%)</b></td></tr></tfoot>
 </table>
 </div>
 
+<div class="callout ok">
+  <b>เหลือแค่ติดตั้งร้านนำร่องก่อนปิดก้อนที่ 1</b>
+  ตัวระบบขายได้จริงและมีที่ให้เจ้าของร้านดูภาพรวมแล้ว — สิ่งที่เหลืออย่างเดียวคือ
+  การเอาไปให้ร้านนำร่องใช้จริง ซึ่งเป็นก้าวที่สำคัญที่สุดของทั้งโครงการ
+  เพราะจะบอกได้ว่าที่เดาไว้ในเอกสารนี้ตรงกับที่ร้านต้องการจริงแค่ไหน
+</div>
+
 <div class="callout">
-  <b>ยังไม่ทำในก้อนแรก</b>
+  <b>ยังไม่ทำ — เก็บไว้ก้อนถัดไปโดยตั้งใจ</b>
   พิมพ์สลิป · ผังโต๊ะ · ตัวเลือก/ท็อปปิ้ง · แยกบิล · KDS · สมาชิก · โปรโมชัน ·
   คิดต้นทุน BOM · หลายสาขา · เดลิเวอรี · e-Tax<br>
   <b>เอาไปให้ร้าน 3 ร้านใน จ.เลย ใช้ฟรี 2 เดือน แล้วดูว่าเขาขออะไรจริง</b> —
   น่าจะไม่ตรงกับที่เราเดาไว้ ซึ่งนั่นคือประโยชน์ของการปล่อยเร็ว
 </div>
 
-<h3><span class="tag t-2">ก้อนที่ 2</span> พิมพ์ + โต๊ะ + คิดต้นทุน — 48 คน-วัน</h3>
+<h3><span class="tag t-2">ก้อนที่ 2</span> พิมพ์ + โต๊ะ + คิดต้นทุน — 48 คน-วัน <span class="status status--done" style="margin-left:8px">โค้ดครบ — รอทดสอบเครื่องจริง</span></h3>
 <div class="tw">
 <table>
-<thead><tr><th>งาน</th><th class="n">คน-วัน</th><th>ทำไมอยู่ก้อนนี้</th></tr></thead>
+<thead><tr><th>งาน</th><th class="n">คน-วัน</th><th>สถานะ</th><th>รายละเอียด</th></tr></thead>
 <tbody>
 <tr><td>พิมพ์ผ่าน Web Bluetooth (ESC/POS)</td><td class="n">7</td>
-  <td>ร้านส่วนใหญ่จะขอ แต่รอยืนยันจากร้านนำร่องก่อนว่าจำเป็นแค่ไหน</td></tr>
+  <td><span class="status status--done">เขียนแล้ว</span></td>
+  <td>จับคู่ + พิมพ์ใบเสร็จได้ — <b>ยังไม่ได้ทดสอบกับเครื่องพิมพ์จริง</b>
+  รายชื่อ Bluetooth service ที่ใช้เป็นค่าคาดเดาจากรุ่นที่พบบ่อย ต้องซื้อเครื่องมาลองตามหัวข้อ 05</td></tr>
 <tr><td>ผังโต๊ะแบบง่าย (ไม่ลากวาง)</td><td class="n">6</td>
-  <td>ร้านนั่งทานต้องมี ร้านตามสั่งไม่ต้อง — ทำเป็นตัวเลือกเปิด/ปิด</td></tr>
+  <td><span class="status status--done">เสร็จ</span></td>
+  <td>ตารางเลขโต๊ะ 1..N ตามจำนวนที่ตั้งไว้ สถานะมาจากออร์เดอร์ QR ที่เข้าครัวแล้ว</td></tr>
 <tr><td>ตัวเลือก/ท็อปปิ้ง (modifier)</td><td class="n">6</td>
-  <td>เผ็ดน้อย/กลาง/มาก, พิเศษ, ไม่ใส่ผักชี</td></tr>
-<tr><td>แยกบิล</td><td class="n">4</td><td>ตามรายการหรือหารเท่า</td></tr>
+  <td><span class="status status--done">เสร็จ</span></td>
+  <td>เจ้าของร้านตั้งกลุ่มตัวเลือกต่อเมนูได้ ลูกค้า/พนักงานเลือกได้ทั้งฝั่ง POS และ QR Order
+  ราคาคิดที่เซิร์ฟเวอร์เสมอ ไม่เชื่อไคลเอนต์ (ตามหลักเดียวกับราคาสั่งซื้อ)</td></tr>
+<tr><td>แยกบิล</td><td class="n">4</td>
+  <td><span class="status status--done">เสร็จ</span></td>
+  <td>หารเท่า (เครื่องคิดเลขช่วยบอกยอดต่อคน) และแยกตามรายการ (ปิดเป็นบิลจริงหลายใบ)</td></tr>
 <tr><td><b>สูตรอาหาร BOM + คิดต้นทุน</b></td><td class="n">14</td>
-  <td><b>ตัวที่ทำให้ขึ้นราคาจาก 1,900 เป็น 3,500 ฿/ปี ได้</b> (ดูหัวข้อ 08)</td></tr>
+  <td><span class="status status--done">เสร็จ</span></td>
+  <td><b>ตัวที่ทำให้ขึ้นราคาจาก 1,900 เป็น 3,500 ฿/ปี ได้</b> (ดูหัวข้อ 08) — ต้นทุน/กำไรคิดจาก
+  ราคาวัตถุดิบปัจจุบันเสมอ ไม่ย้อนหลังตามราคา ณ วันขาย (ยอมแลกความง่าย)</td></tr>
 <tr><td>สต๊อกพื้นฐาน — รับเข้า ตัดออก ตรวจนับ</td><td class="n">8</td>
-  <td>จำเป็นเพื่อให้ BOM มีความหมาย</td></tr>
-<tr><td>รายงานกำไรต่อเมนู</td><td class="n">3</td><td>ผลลัพธ์ที่ลูกค้าจ่ายเงินเพื่อดู</td></tr>
+  <td><span class="status status--wait">บางส่วน</span></td>
+  <td>รับเข้า/ตัดออก/นับสต๊อกทำเองได้จากหน้าจัดการ — <b>แต่ยังไม่ตัดสต๊อกอัตโนมัติตอนปิดบิล</b>
+  (ต้องใช้ PocketBase record hook ที่ยังไม่ได้ทดสอบกับเซิร์ฟเวอร์จริง เก็บไว้ก้อนถัดไปหลังทดสอบ)</td></tr>
+<tr><td>รายงานกำไรต่อเมนู</td><td class="n">3</td>
+  <td><span class="status status--done">เสร็จ</span></td>
+  <td>แดชบอร์ดแสดงกำไรวันนี้และกำไรต่อเมนูขายดี (ค่าประมาณจากต้นทุนปัจจุบัน)</td></tr>
 </tbody>
-<tfoot><tr><td>รวมก้อนที่ 2</td><td class="n">48</td><td>ทำเต็มเวลา ≈ 2.3 เดือน</td></tr></tfoot>
+<tfoot><tr><td>รวมก้อนที่ 2</td><td class="n">48</td><td colspan="2">
+  โค้ดครบทุกหัวข้อแล้ว ยังไม่ commit และยังไม่ได้ทดสอบกับอุปกรณ์จริง/ร้านจริง
+  ก่อนจะถือว่าปิดก้อนนี้ได้จริงต้องผ่านหัวข้อ "ทดสอบ" เหมือนก้อนที่ 1</td></tr></tfoot>
 </table>
 </div>
 
@@ -545,12 +635,14 @@ https://order.prakaipos.com/t/{รหัสร้าน}/{เลขโต๊ะ}
     <span>มีเสียงเตือน ระบุโต๊ะและรอบชัดเจน ถ้าร้านมีเครื่องพิมพ์ (ก้อน 2) ก็พิมพ์สลิปครัวอัตโนมัติ</span></li>
   <li><b>ลูกค้าดูสถานะ สั่งเพิ่ม เรียกพนักงาน ขอเช็คบิล</b>
     <span>ปุ่มเรียกพนักงานส่งแจ้งเตือนไปที่แท็บเล็ต ลดการตะโกนเรียกในร้าน</span></li>
-  <li><b>ชำระเงิน</b>
-    <span>ก้อนแรก: จ่ายที่เคาน์เตอร์ พนักงานปิดบิล — ลูกค้าดูยอดบนมือถือได้ก่อน<br>
-    ก้อนถัดไป: จ่ายเองผ่าน PromptPay QR บนมือถือ</span></li>
-  <li><b>ปิดรอบนั่ง</b>
-    <span>เมื่อปิดบิล token หมดอายุทันที ลูกค้าโต๊ะถัดไปสแกน QR เดิมจะได้รอบใหม่
-    มองไม่เห็นข้อมูลคนก่อนหน้า</span></li>
+  <li><b>ชำระเงิน <span class="status status--done" style="margin-left:6px">ทำแล้ว</span></b>
+    <span>จ่ายที่เคาน์เตอร์ พนักงานเปิดแผงออร์เดอร์ QR แล้วกด "รับเงิน" —
+    ระบบรวมทุกออร์เดอร์ที่ยืนยันแล้วของโต๊ะนั้นเป็นบิลเดียวให้อัตโนมัติ พร้อมคิดเงินสด/พร้อมเพย์
+    เหมือนบิลปกติทุกอย่าง ไม่ต้องคีย์รายการซ้ำ<br>
+    ก้อนถัดไป: ลูกค้าจ่ายเองผ่าน PromptPay QR บนมือถือได้โดยไม่ต้องรอพนักงาน</span></li>
+  <li><b>ปิดรอบนั่ง <span class="status status--done" style="margin-left:6px">ทำแล้ว</span></b>
+    <span>พนักงานปิดบิลเมื่อไร รอบนั่งปิดทันที (token หมดอายุ) ลูกค้าโต๊ะถัดไปสแกน QR เดิม
+    จะได้รอบใหม่ มองไม่เห็นข้อมูลคนก่อนหน้า</span></li>
 </ol>
 
 <div class="tw">
@@ -939,8 +1031,9 @@ https://order.prakaipos.com/t/{รหัสร้าน}/{เลขโต๊ะ}
     <li><a href="https://www.blognone.com/node/95133">มาตรฐาน PromptPay QR (EMVCo)</a></li>
     <li><a href="https://flowaccount.com/blog/easy-e-receipt/">ข้อกำหนด e-Tax Invoice และ e-Receipt</a></li>
   </ul>
-  <p style="margin-top:16px">PrakaiPOS — เอกสารออกแบบ v2.0 · 30 กรกฎาคม 2569<br>
-  แก้จาก v1.0 ที่ออกแบบสำหรับ 200–1,000 สาขา และมีข้อผิดพลาดเรื่องเซิร์ฟเวอร์ในร้านบน iPad</p>
+  <p style="margin-top:16px">PrakaiPOS — เอกสารออกแบบ v2.1 · ปรับปรุงล่าสุด 31 กรกฎาคม 2569<br>
+  แก้จาก v1.0 ที่ออกแบบสำหรับ 200–1,000 สาขา และมีข้อผิดพลาดเรื่องเซิร์ฟเวอร์ในร้านบน iPad ·
+  v2.1 อัปเดตสถานะให้ตรงกับของที่สร้างจริงแล้ว (ก้อนที่ 1 เสร็จ 46/52 คน-วัน)</p>
 </footer>
 
 </div>
