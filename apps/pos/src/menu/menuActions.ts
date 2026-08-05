@@ -1,8 +1,12 @@
 import type { ModifierGroup, RecipeLine, Satang } from '@prakaipos/shared';
 import { db } from '../db/db.js';
 import { enqueue } from '../db/outbox.js';
+import { getShopSettings } from '../shop/shopSettings.js';
 import { pb } from '../sync/pb.js';
 import { pullMenu } from '../sync/pullMenu.js';
+
+/** เอกสารออกแบบหัวข้อ 11 — แผนทดลองใช้ได้สูงสุดเท่านี้เมนู */
+const MAX_TRIAL_MENU_ITEMS = 40;
 
 /**
  * การแก้เมนู
@@ -125,6 +129,19 @@ export async function createMenuItem(
   input: MenuItemInput,
 ): Promise<void> {
   requireOnline('การเพิ่มเมนู');
+
+  // เช็คฝั่งไคลเอนต์เท่านั้น — เป็นแค่ข้อความชวนอัปเกรด ไม่ใช่จุดบังคับด้านรายได้
+  // (จุดบังคับจริงคือ QR Order ที่เช็คฝั่งเซิร์ฟเวอร์ใน qr_order.pb.js)
+  const shop = await getShopSettings();
+  if (!shop?.plan || shop.plan === 'trial') {
+    const count = await db.menuItems.where('shopId').equals(shopId).count();
+    if (count >= MAX_TRIAL_MENU_ITEMS) {
+      throw new Error(
+        `แผนทดลองใช้เมนูได้สูงสุด ${MAX_TRIAL_MENU_ITEMS} รายการ — ติดต่อทีมงานเพื่ออัปเกรดแผนถ้าต้องการเพิ่มอีก`,
+      );
+    }
+  }
+
   await pb.collection('menu_items').create(
     buildPayload(
       {

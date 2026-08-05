@@ -1,4 +1,4 @@
-import type { QrOrderMode } from '@prakaipos/shared';
+import type { QrOrderMode, ShopPlan } from '@prakaipos/shared';
 import { getSetting, setSetting } from '../db/db.js';
 import { pb } from '../sync/pb.js';
 
@@ -25,6 +25,10 @@ export interface ShopSettings {
   tablesEnabled: boolean;
   /** จำนวนโต๊ะ 1..N — 0 แปลว่ายังไม่ได้ตั้งค่าแม้ tablesEnabled จะเป็นจริง */
   tableCount: number;
+  /** ว่าง = ร้านเก่าก่อนมีระบบแผนสมาชิก ถือเหมือน trial (เอกสารออกแบบหัวข้อ 11) */
+  plan: ShopPlan | '';
+  /** วันหมดอายุของแผนที่จ่ายเงินแล้ว — ว่างสำหรับ trial */
+  planExpiresAt: string;
   fetchedAt: string;
 }
 
@@ -36,6 +40,8 @@ interface ShopRecord {
   qr_order_mode: QrOrderMode;
   tables_enabled: boolean;
   table_count: number;
+  plan: ShopPlan | '';
+  plan_expires_at: string;
 }
 
 export async function getShopSettings(): Promise<ShopSettings | null> {
@@ -66,6 +72,8 @@ export async function refreshShopSettings(
       qrOrderMode: record.qr_order_mode,
       tablesEnabled: record.tables_enabled,
       tableCount: record.table_count ?? 0,
+      plan: record.plan ?? '',
+      planExpiresAt: record.plan_expires_at ?? '',
       fetchedAt: now.toISOString(),
     };
     await setSetting(KEY_SHOP, settings);

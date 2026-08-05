@@ -1,13 +1,22 @@
-import { formatBaht } from '@prakaipos/shared';
+import { bahtToSatang, formatBaht } from '@prakaipos/shared';
 import { ArrowLeft, LogOut, Store } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { loginAsAdmin, logout, pb } from './pb.js';
+
+const PLAN_LABEL: Record<string, string> = { trial: 'Trial', core: 'Core', plus: 'Plus' };
+
+/** ว่าง = ร้านเก่าก่อนมีระบบแผนสมาชิก ถือเหมือน trial */
+function planLabel(plan: string, expiresAt: string): string {
+  const label = PLAN_LABEL[plan] ?? 'Trial';
+  if (plan === 'trial' || !plan) return label;
+  return expiresAt ? `${label} (ถึง ${expiresAt.slice(0, 10)})` : label;
+}
 
 /**
  * แอดมินกลาง — ดูภาพรวมทุกร้านในระบบ
  *
  * v1: ดูอย่างเดียว (ไม่มีแก้ไข) — แก้ข้อมูลยังใช้หน้า PocketBase admin ปกติได้
- * (http://127.0.0.1:8090/_/) เพราะมีอยู่แล้วครบและปลอดภัยกว่าเขียนฟอร์มแก้เอง
+ * (http://127.0.0.1:8095/_/) เพราะมีอยู่แล้วครบและปลอดภัยกว่าเขียนฟอร์มแก้เอง
  * ใหม่ทั้งหมด แอปนี้มีไว้ตอบคำถาม "ตอนนี้มีร้านอะไรบ้าง ร้านไหนใช้งานจริง"
  * ซึ่ง PocketBase admin ตอบยาก (ต้องกดดูทีละ collection ทีละร้าน)
  */
@@ -18,6 +27,18 @@ interface ShopRow {
   name: string;
   contact_phone: string;
   tables_enabled: boolean;
+  plan: string;
+  plan_expires_at: string;
+  created: string;
+}
+
+interface PaymentRow {
+  id: string;
+  plan: string;
+  amount: number;
+  paid_at: string;
+  note: string;
+  recorded_by: string;
   created: string;
 }
 
@@ -147,6 +168,7 @@ function AdminHome() {
                   <tr>
                     <th>ชื่อร้าน</th>
                     <th>รหัสร้าน</th>
+                    <th>แผน</th>
                     <th>เบอร์ติดต่อ</th>
                     <th>ผังโต๊ะ</th>
                     <th>สมัครเมื่อ</th>
@@ -157,6 +179,7 @@ function AdminHome() {
                     <tr key={s.id} className="tbl__row" onClick={() => setSelected(s)}>
                       <td>{s.name}</td>
                       <td className="mono">{s.code}</td>
+                      <td>{planLabel(s.plan, s.plan_expires_at)}</td>
                       <td>{s.contact_phone || '—'}</td>
                       <td>{s.tables_enabled ? 'เปิด' : 'ปิด'}</td>
                       <td className="mono">{s.created.slice(0, 10)}</td>
@@ -172,9 +195,13 @@ function AdminHome() {
   );
 }
 
-function ShopDetail({ shop, onBack }: { shop: ShopRow; onBack: () => void }) {
+function ShopDetail({ shop: initialShop, onBack }: { shop: ShopRow; onBack: () => void }) {
+  // เก็บ state ของตัวเองแยกจาก props — อัปเดตทันทีหลังบันทึกการจ่ายเงินสำเร็จ
+  // โดยไม่ต้องรีเฟรชรายชื่อร้านทั้งหน้า (ตาราง "ร้านทั้งหมด" จะเห็นค่าใหม่ตอนกลับไปโหลดใหม่)
+  const [shop, setShop] = useState(initialShop);
   const [staff, setStaff] = useState<StaffRow[] | null>(null);
   const [orders, setOrders] = useState<OrderRow[] | null>(null);
+  const [payments, setPayments] = useState<PaymentRow[] | null>(null);
 
   useEffect(() => {
     void pb
@@ -185,6 +212,11 @@ function ShopDetail({ shop, onBack }: { shop: ShopRow; onBack: () => void }) {
       .collection('orders')
       .getList<OrderRow>(1, 10, { filter: `shop="${shop.id}"`, sort: '-created' })
       .then((res) => setOrders(res.items));
+    void pb
+      .collection('payments')
+      .getFullList<PaymentRow>({ filter: `shop="${shop.id}"`, sort: '-paid_at' })
+      .then(setPayments)
+      .catch(() => setPayments([]));
   }, [shop.id]);
 
   const paidOrders = orders?.filter((o) => o.status === 'paid') ?? [];
@@ -197,6 +229,30 @@ function ShopDetail({ shop, onBack }: { shop: ShopRow; onBack: () => void }) {
       </button>
       <h2>{shop.name}</h2>
       <p className="muted mono">รหัสร้าน: {shop.code}</p>
+
+      <h3>แผน/การชำระเงิน — {planLabel(shop.plan, shop.plan_expires_at)}</h3>
+      {!payments ? (
+        <p className="muted">กำลังโหลด…</p>
+      ) : payments.length === 0 ? (
+        <p className="muted">ยังไม่มีการจ่ายเงิน</p>
+      ) : (
+        <ul className="list">
+          {payments.map((p) => (
+            <li key={p.id}>
+              {p.plan === 'plus' ? 'Plus' : 'Core'} · {formatBaht(p.amount)} · จ่ายเมื่อ{' '}
+              {p.paid_at.slice(0, 10)}
+              {p.note && <span className="muted"> · {p.note}</span>}
+            </li>
+          ))}
+        </ul>
+      )}
+      <RecordPaymentForm
+        shop={shop}
+        onRecorded={(updatedShop, payment) => {
+          setShop(updatedShop);
+          setPayments((cur) => [payment, ...(cur ?? [])]);
+        }}
+      />
 
       <h3>พนักงาน</h3>
       {!staff ? (
@@ -230,5 +286,109 @@ function ShopDetail({ shop, onBack }: { shop: ShopRow; onBack: () => void }) {
         </ul>
       )}
     </div>
+  );
+}
+
+/**
+ * บันทึกการจ่ายเงินรายปี — เก็บเงินแบบ manual ตามเอกสารออกแบบหัวข้อ 11
+ * (โอน/พร้อมเพย์เก็บเอง ไม่มี payment gateway) แอปนี้เป็นแค่ที่บันทึกว่า
+ * ใครจ่ายแล้วเท่าไรเมื่อไร — เขียนตรงผ่าน PocketBase SDK ด้วยบัญชี superuser
+ * ที่ล็อกอินอยู่แล้ว (ดู pb.ts) ไม่ต้องเปิด hook route ใหม่
+ */
+function RecordPaymentForm({
+  shop,
+  onRecorded,
+}: {
+  shop: ShopRow;
+  onRecorded: (shop: ShopRow, payment: PaymentRow) => void;
+}) {
+  const [plan, setPlan] = useState<'core' | 'plus'>('core');
+  const [amountBaht, setAmountBaht] = useState('1900');
+  const [paidAt, setPaidAt] = useState(() => new Date().toISOString().slice(0, 10));
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const amount = bahtToSatang(Number(amountBaht));
+      if (!Number.isFinite(amount) || amount <= 0) {
+        throw new Error('จำนวนเงินไม่ถูกต้อง');
+      }
+
+      const payment = await pb.collection('payments').create<PaymentRow>({
+        shop: shop.id,
+        plan,
+        amount,
+        paid_at: paidAt,
+        note,
+      });
+
+      // ต่ออายุซ้อนจากวันหมดอายุเดิม (ไม่ใช่จากวันนี้เสมอ) กันเสียเปรียบถ้า
+      // จ่ายก่อนหมดอายุจริง — แผนเดิมยังไม่หมดอายุก็บวกเพิ่มจากวันนั้นไปเลย
+      const currentExpiry = shop.plan_expires_at ? new Date(shop.plan_expires_at) : null;
+      const base =
+        currentExpiry && currentExpiry.getTime() > Date.now() ? currentExpiry : new Date();
+      const nextExpiry = new Date(base);
+      nextExpiry.setUTCDate(nextExpiry.getUTCDate() + 365);
+
+      const updatedShop = await pb.collection('shops').update<ShopRow>(shop.id, {
+        plan,
+        plan_expires_at: nextExpiry.toISOString(),
+      });
+
+      setAmountBaht(plan === 'plus' ? '3500' : '1900');
+      setNote('');
+      onRecorded(updatedShop, payment);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'บันทึกการจ่ายเงินไม่สำเร็จ');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="panel" style={{ maxWidth: 420 }} onSubmit={submit}>
+      <label className="field">
+        <span>แผน</span>
+        <select value={plan} onChange={(e) => setPlan(e.target.value as 'core' | 'plus')}>
+          <option value="core">Core (1,900 ฿/ปี)</option>
+          <option value="plus">Plus (3,500 ฿/ปี)</option>
+        </select>
+      </label>
+      <label className="field">
+        <span>จำนวนเงิน (บาท)</span>
+        <input
+          type="number"
+          min="0"
+          step="1"
+          value={amountBaht}
+          onChange={(e) => setAmountBaht(e.target.value)}
+          required
+        />
+      </label>
+      <label className="field">
+        <span>วันที่จ่าย</span>
+        <input type="date" value={paidAt} onChange={(e) => setPaidAt(e.target.value)} required />
+      </label>
+      <label className="field">
+        <span>หมายเหตุ</span>
+        <input
+          type="text"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="เช่น โอนผ่านพร้อมเพย์"
+        />
+      </label>
+
+      {error && <p className="alert">{error}</p>}
+
+      <button type="submit" className="btn btn--primary btn--block" disabled={busy}>
+        {busy ? 'กำลังบันทึก…' : 'บันทึกการจ่ายเงิน'}
+      </button>
+    </form>
   );
 }

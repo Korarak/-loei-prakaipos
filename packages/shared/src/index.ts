@@ -17,6 +17,7 @@ export type {
   Satang,
   SelectedModifier,
   Shop,
+  ShopPlan,
   Staff,
   StaffRole,
   StockMovement,

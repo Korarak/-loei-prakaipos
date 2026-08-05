@@ -48,8 +48,9 @@ body {
   padding: 10px 16px;
   /* เผื่อพื้นที่ notch บน iPad รุ่นใหม่ */
   padding-top: max(10px, env(safe-area-inset-top));
-  background: var(--panel);
-  border-bottom: 1px solid var(--line);
+  /* เนวี่เข้มแบบแถบหัวของ Amazon — คงที่ไม่ตามธีมมืด/สว่างของเนื้อหา */
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--header-line);
   box-shadow: var(--shadow-1);
   position: relative;
   z-index: 5;
@@ -162,11 +163,19 @@ body {
   padding: 9px 16px;
   font-size: 14px;
   background: var(--accent);
-  color: #fff;
+  /* พื้นส้ม (--accent) สว่างเกินกว่าตัวอักษรขาวจะอ่านชัด จึงใช้ตัวอักษรเข้ม
+     ส่วนโหมด --ok (พื้นเขียว) คอนทราสต์กับขาวดีอยู่แล้ว จึงสลับเป็นขาวด้านล่าง */
+  color: var(--accent-ink);
 }
 
 .updatebar--ok {
   background: var(--ok);
+  color: #fff;
+}
+
+.updatebar--warn {
+  background: var(--warn);
+  color: #fff;
 }
 
 .updatebar button {
@@ -179,9 +188,11 @@ body {
   min-height: 34px;
   padding: 0 14px;
   border-radius: 999px;
-  border: 1px solid #fff8;
-  background: #fff2;
-  color: #fff;
+  /* ยืมสี currentColor จาก .updatebar เพื่อให้ปุ่มปรับสีตามตัวเองอัตโนมัติ
+     ไม่ว่าพื้นด้านหลังจะเป็นส้ม (ตัวอักษรเข้ม) หรือเขียว (ตัวอักษรขาว) */
+  border: 1px solid color-mix(in srgb, currentColor 55%, transparent);
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  color: inherit;
   cursor: pointer;
 }
 
@@ -279,9 +290,10 @@ body {
 }
 
 .btn--primary {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 88%, #fff 12%), var(--accent));
-  border-color: var(--accent);
-  color: #fff;
+  /* ปุ่มส้มเรียบแบบทันสมัย ไม่ไล่เฉด — ยังคงคอนทราสต์ชัดของสไตล์ Amazon */
+  background: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 82%, #000 18%);
+  color: var(--accent-ink);
   box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
@@ -355,8 +367,8 @@ body {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 85%, #fff 15%), var(--accent));
-  color: #fff;
+  background: var(--accent);
+  color: var(--accent-ink);
   font-size: 24px;
   font-weight: 700;
   box-shadow: var(--shadow-1);
@@ -509,7 +521,7 @@ body {
 .catbtn--on {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
   box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
@@ -581,7 +593,7 @@ body {
   padding: 2px 8px;
   border-radius: 999px;
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 /* ── ตะกร้า ── */
@@ -1227,7 +1239,7 @@ body {
 .toggle--on {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 .linkbtn {
@@ -1249,7 +1261,7 @@ body {
 .btn--danger {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
 }
 
 .chips {
@@ -1274,7 +1286,7 @@ body {
 .chip--on {
   border-color: var(--accent);
   background: var(--accent);
-  color: #fff;
+  color: var(--accent-ink);
   box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 

@@ -12,6 +12,7 @@ import { SyncBadge } from './components/SyncBadge.js';
 import { UpdateBanner } from './components/UpdateBanner.js';
 import { requestPersistentStorage } from './db/db.js';
 import { IncomingOrdersButton, type OpenTableGroup } from './components/IncomingOrdersPanel.js';
+import { PlanBanner } from './components/PlanBanner.js';
 import { useIncomingOrders } from './qr/useIncomingOrders.js';
 import { DashboardScreen } from './screens/DashboardScreen.js';
 import { HomeScreen } from './screens/HomeScreen.js';
@@ -170,6 +171,8 @@ function PosShell({
           {session.profile.displayName} · ล็อก
         </button>
       </header>
+
+      <PlanBanner shop={shop} />
 
       {screen === 'sell' ? (
         <SellScreen

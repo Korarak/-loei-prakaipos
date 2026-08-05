@@ -1,9 +1,9 @@
 <!-- ไอคอนแบบ maskable: เนื้อหาต้องอยู่ในวงกลมกลาง 80% เพราะ Android อาจครอบเป็นวงกลม -->
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#b8562f"/>
+  <rect width="64" height="64" fill="#131921"/>
   <path d="M24 22h16a2.5 2.5 0 0 1 2.5 2.5v15A2.5 2.5 0 0 1 40 42H24a2.5 2.5 0 0 1-2.5-2.5v-15A2.5 2.5 0 0 1 24 22z" fill="#fff"/>
-  <rect x="25" y="26" width="14" height="5" rx="1.2" fill="#b8562f"/>
-  <g fill="#b8562f">
+  <rect x="25" y="26" width="14" height="5" rx="1.2" fill="#ff9900"/>
+  <g fill="#ff9900">
     <rect x="25" y="34" width="3.6" height="3" rx="0.8"/>
     <rect x="30.2" y="34" width="3.6" height="3" rx="0.8"/>
     <rect x="35.4" y="34" width="3.6" height="3" rx="0.8"/>

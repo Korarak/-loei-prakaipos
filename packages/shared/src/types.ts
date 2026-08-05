@@ -31,9 +31,15 @@ export interface Shop {
   tablesEnabled: boolean;
   /** จำนวนโต๊ะ 1..N สำหรับวาดผังโต๊ะ — 0 = ยังไม่ได้ตั้งค่า */
   tableCount: number;
+  /** แผนสมาชิก (เอกสารออกแบบหัวข้อ 11) — ว่าง (ร้านเก่าก่อนมีระบบนี้) ถือเหมือน trial */
+  plan: ShopPlan | '';
+  /** วันหมดอายุของแผนที่จ่ายเงินแล้ว — ว่างสำหรับ trial (ไม่มีวันหมดอายุ จำกัดด้วยฟีเจอร์แทน) */
+  planExpiresAt: IsoDateTime | '';
   createdAt: IsoDateTime;
   updatedAt: IsoDateTime;
 }
+
+export type ShopPlan = 'trial' | 'core' | 'plus';
 
 export type QrOrderMode = 'auto' | 'staff_confirm';
 
