@@ -12,7 +12,7 @@
 
 import { createHmac, randomBytes } from 'node:crypto';
 
-const PB = process.env.PB_URL ?? 'http://127.0.0.1:8090';
+const PB = process.env.PB_URL ?? 'http://127.0.0.1:8095';
 const ADMIN_EMAIL = process.env.PB_ADMIN_EMAIL ?? 'dev@prakaipos.local';
 const ADMIN_PASSWORD = process.env.PB_ADMIN_PASSWORD ?? 'devpassword123';
 
@@ -238,7 +238,7 @@ async function main() {
     deviceIndex: 1,
   });
 
-  console.log('\nเสร็จแล้ว · หน้า admin: http://127.0.0.1:8090/_/');
+  console.log('\nเสร็จแล้ว · หน้า admin: http://127.0.0.1:8095/_/');
 }
 
 main().catch((err) => {

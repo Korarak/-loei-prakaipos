@@ -7,7 +7,7 @@ import PocketBase from 'pocketbase';
  * เพราะทุกการกระทำต้องเขียนลงเครื่องก่อนเสมอ แล้วค่อยส่งทีหลัง
  */
 
-const baseUrl = import.meta.env.VITE_PB_URL ?? 'http://127.0.0.1:8090';
+const baseUrl = import.meta.env.VITE_PB_URL ?? 'http://127.0.0.1:8095';
 
 export const pb = new PocketBase(baseUrl);
 

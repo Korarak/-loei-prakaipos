@@ -44,14 +44,14 @@ docs/            เอกสารออกแบบ
 ```bash
 npm install
 
-npm run pb:up                      # PocketBase ที่ :8090
+npm run pb:up                      # PocketBase ที่ :8095
 docker exec prakaipos-pb pocketbase admin create dev@prakaipos.local devpassword123 --dir /pb_data
 node backend/seed.mjs              # ข้อมูลตัวอย่าง 2 ร้าน
 node backend/verify-isolation.mjs  # ตรวจกฎแยกข้อมูล
 node backend/verify-auth.mjs       # ตรวจเส้นทางเข้าระบบ
 
-npm run dev:pos                    # หน้าขาย  http://localhost:5173
-npm run dev:order                  # หน้าลูกค้า http://localhost:5174/t/krua-nong/5
+npm run dev:pos                    # หน้าขาย  http://localhost:5183
+npm run dev:order                  # หน้าลูกค้า http://localhost:5184/t/krua-nong/5
 ```
 
 ```bash
@@ -63,7 +63,7 @@ npm run build
 ### ทดสอบพฤติกรรมออฟไลน์
 
 **โหมด dev ไม่ลง Service Worker โดยตั้งใจ** เพราะ SW ในโหมด dev จะค้างอยู่
-ในเบราว์เซอร์หลังปิด dev server แล้วดักหน้า `localhost:5173` ไว้
+ในเบราว์เซอร์หลังปิด dev server แล้วดักหน้า `localhost:5183` ไว้
 เสิร์ฟ shell เก่าที่ไปขอ `/src/main.tsx` จากเซิร์ฟเวอร์ที่ไม่มีแล้ว
 ได้ `ERR_CONNECTION_REFUSED` เป็นพรืดจนดูเหมือนแอปพัง
 

@@ -5,8 +5,12 @@
 #   npm run dev:down    — ปิด
 #   npm run dev:logs    — ดู log
 #
-# หน้าเว็บ: POS http://localhost:5173 · QR Order http://localhost:5174 ·
-#           Admin http://localhost:5175 · PocketBase admin http://localhost:8090/_/
+# หน้าเว็บ: POS http://localhost:5183 · QR Order http://localhost:5184 ·
+#           Admin http://localhost:5185 · PocketBase admin http://localhost:8095/_/
+#
+# หมายเหตุ: ย้ายพอร์ตทั้งชุดจากค่าเริ่มต้น (5173-5175, 8090) เป็น
+# (5183-5185, 8095) เพราะชนกับคอนเทนเนอร์โปรเจกต์อื่นบนเครื่องนี้ —
+# แก้ตรงกันทั้ง vite.config.ts ของแต่ละแอปและพอร์ตฝั่ง host ที่นี่
 #
 # โค้ด bind-mount จากเครื่องจริงเข้าคอนเทนเนอร์ แก้ไฟล์แล้ว Vite hot-reload
 # ทันทีเหมือนรันตรงบนเครื่อง — ยกเว้น node_modules ที่แยกเป็น volume ของ
@@ -23,7 +27,7 @@ services:
     container_name: prakaipos-pb
     restart: unless-stopped
     ports:
-      - '8090:8090'
+      - '8095:8090'
     volumes:
       - ./backend/pb_data:/pb_data
       - ./backend/pb_migrations:/pb_migrations
@@ -41,10 +45,10 @@ services:
     working_dir: /app
     command: sh -c "npm install && npm run dev -w @prakaipos/pos -- --host 0.0.0.0"
     environment:
-      - VITE_PB_URL=http://localhost:8090
+      - VITE_PB_URL=http://localhost:8095
       - CHOKIDAR_USEPOLLING=true
     ports:
-      - '5173:5173'
+      - '5183:5183'
     volumes:
       - .:/app
       - pos_node_modules:/app/node_modules
@@ -58,10 +62,10 @@ services:
     working_dir: /app
     command: sh -c "npm install && npm run dev -w @prakaipos/order -- --host 0.0.0.0"
     environment:
-      - VITE_PB_URL=http://localhost:8090
+      - VITE_PB_URL=http://localhost:8095
       - CHOKIDAR_USEPOLLING=true
     ports:
-      - '5174:5174'
+      - '5184:5184'
     volumes:
       - .:/app
       - order_node_modules:/app/node_modules
@@ -75,10 +79,10 @@ services:
     working_dir: /app
     command: sh -c "npm install && npm run dev -w @prakaipos/admin -- --host 0.0.0.0"
     environment:
-      - VITE_PB_URL=http://localhost:8090
+      - VITE_PB_URL=http://localhost:8095
       - CHOKIDAR_USEPOLLING=true
     ports:
-      - '5175:5175'
+      - '5185:5185'
     volumes:
       - .:/app
       - admin_node_modules:/app/node_modules

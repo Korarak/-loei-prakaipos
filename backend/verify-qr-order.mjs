@@ -7,7 +7,7 @@
  * ที่ราคาที่ตัวเองกำหนดเองได้ หรือแกล้งสั่งจากนอกร้านได้ (ดู backend/README.md)
  */
 
-const PB = process.env.PB_URL ?? 'http://127.0.0.1:8090';
+const PB = process.env.PB_URL ?? 'http://127.0.0.1:8095';
 
 let failures = 0;
 function check(label, ok, detail = '') {

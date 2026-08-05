@@ -7,13 +7,13 @@
 ## เริ่มใช้งานในเครื่อง
 
 ```bash
-npm run pb:up                      # เปิด PocketBase ที่ :8090
+npm run pb:up                      # เปิด PocketBase ที่ :8095
 docker exec prakaipos-pb pocketbase admin create dev@prakaipos.local devpassword123 --dir /pb_data
 node backend/seed.mjs              # ใส่ข้อมูลตัวอย่าง 2 ร้าน
 node backend/verify-isolation.mjs  # ตรวจว่ากฎแยกข้อมูลทำงาน
 ```
 
-หน้า admin: <http://127.0.0.1:8090/_/>
+หน้า admin: <http://127.0.0.1:8095/_/>
 
 บัญชีตัวอย่างหลังรัน seed (PIN `1234` ทุกคน — **สำหรับ dev เท่านั้น**):
 

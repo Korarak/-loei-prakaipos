@@ -7,7 +7,10 @@
 #   npm run pb:logs   — ดู log
 #   npm run pb:down   — ปิด
 #
-# หน้า admin: http://127.0.0.1:8090/_/
+# หน้า admin: http://127.0.0.1:8095/_/
+#
+# หมายเหตุ: พอร์ตฝั่ง host ย้ายจาก 8090 เป็น 8095 เพราะชนกับคอนเทนเนอร์
+# โปรเจกต์อื่นบนเครื่องนี้ — ให้ตรงกับ docker-compose.dev.yml ที่ root
 
 services:
   pocketbase:
@@ -15,7 +18,7 @@ services:
     container_name: prakaipos-pb
     restart: unless-stopped
     ports:
-      - '8090:8090'
+      - '8095:8090'
     volumes:
       # ข้อมูลจริงทั้งหมดอยู่ในนี้ — ไฟล์ SQLite + รูปเมนู
       # สำรอง = คัดลอกโฟลเดอร์นี้ (ดูหัวข้อ 04 ของเอกสารออกแบบ)

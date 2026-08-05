@@ -7,7 +7,7 @@
  * และกฎสิทธิ์ของ collection `staff` ตั้งไว้ถูกต้องจริงบนเซิร์ฟเวอร์
  */
 
-const PB = process.env.PB_URL ?? 'http://127.0.0.1:8090';
+const PB = process.env.PB_URL ?? 'http://127.0.0.1:8095';
 
 let failures = 0;
 

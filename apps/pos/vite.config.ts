@@ -20,8 +20,8 @@ export default defineConfig({
         display: 'standalone',
         // แท็บเล็ตหน้าร้านวางตามแนวนอนเสมอ
         orientation: 'landscape',
-        background_color: '#fbfaf8',
-        theme_color: '#b8562f',
+        background_color: '#eaeded',
+        theme_color: '#131921',
         // ใช้ SVG แบบ sizes:"any" — Chrome ยอมรับสำหรับเกณฑ์การติดตั้ง PWA
         // และไม่ต้องดูแลไฟล์ภาพหลายขนาด
         //
@@ -64,7 +64,7 @@ export default defineConfig({
         // ปิดโดยตั้งใจ
         //
         // Service Worker ในโหมด dev อยู่ต่อในเบราว์เซอร์หลังปิด dev server
-        // แล้วดักหน้า localhost:5173 ไว้ เสิร์ฟ shell เก่าจากแคช
+        // แล้วดักหน้า localhost:5183 ไว้ เสิร์ฟ shell เก่าจากแคช
         // ซึ่งไปขอ /src/main.tsx จากเซิร์ฟเวอร์ที่ไม่มีแล้ว
         // ได้ ERR_CONNECTION_REFUSED เป็นพรืด และดูเหมือนแอปพัง
         //
@@ -87,7 +87,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 5173,
+    port: 5183,
     // เปิดให้เข้าจากแท็บเล็ตในวงแลนได้ — ต้องทดสอบบนเครื่องจริงตั้งแต่แรก
     // เพราะปัญหาเรื่องขนาดปุ่มและการตอบสนองไม่โผล่บนเดสก์ท็อป
     host: true,
