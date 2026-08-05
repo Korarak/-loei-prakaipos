@@ -19,6 +19,7 @@ node backend/verify-qr-order.mjs          # เส้นทาง QR Order
 node backend/verify-menu-price-guard.mjs  # พนักงานแก้เมนูได้แค่ sold_out
 node backend/verify-plan-guard.mjs        # แผนสมาชิก/บล็อก QR Order ตอน trial
 node backend/verify-stock-deduct.mjs      # ตัดสต๊อก/คืนสต๊อกอัตโนมัติ
+node backend/verify-qr-receipt-link.mjs   # ผูกออร์เดอร์ QR เข้ากับเลขใบเสร็จจริง
 ```
 
 หน้า admin: <http://127.0.0.1:8095/_/>
@@ -123,13 +124,16 @@ filter จะคืน 0 แถวเสมอโดยไม่มี error ใ
 พบตอนรัน `verify-qr-order.mjs`/`verify-stock-deduct.mjs` ครั้งแรกหลังเพิ่ม
 ฟิลด์ `recipe` ซึ่งเมนูส่วนใหญ่ในระบบยังไม่มีค่า)
 
-## ยังทำไม่เสร็จ — ต้องทำก่อนเปิดให้ร้านจริงใช้
+### เลขบิลชั่วคราวของ QR order ผูกกับเลขใบเสร็จจริงแล้ว
 
-> **เลขบิลชั่วคราวของ QR order ยังไม่ถูกผูกเข้ากับเลขใบเสร็จจริง**
->
-> ตอนนี้ order ที่มาจาก QR ค้างเป็นเลขติดลบตลอดไป ต้องออกแบบขั้นตอนตอน
-> พนักงานปิดบิลที่เคาน์เตอร์ (หรือระบบแปลงอัตโนมัติในโหมด auto) ให้ผูก
-> เลขบิลจริงจากช่วงที่เครื่อง POS จองไว้เข้ากับ order นี้
+ตอนพนักงานกด "รับเงิน" ที่โต๊ะ (`apps/pos/src/screens/PayDialog.tsx`) ระบบสร้าง
+บิลใหม่ `channel="pos"` ที่มีเลขบิลจริงจากช่วงที่เครื่องจองไว้ (ผ่าน `checkout()`
+เดียวกับบิลหน้าร้านทุกใบ) แล้ว PATCH ออร์เดอร์ QR ต้นทางทุกใบของรอบนั่งนั้นให้
+`status="paid"` พร้อมผูก `linked_order_client_uuid` ไว้กับ `client_uuid` ของ
+บิลใหม่ (ดู `backend/pb_migrations/1753900500_orders_linked_order.js` สำหรับ
+เหตุผลที่ผูกด้วย client_uuid แทน relation field ตรงๆ) — ตามรอยจากออร์เดอร์ QR
+เลขติดลบไปหาใบเสร็จจริงได้ด้วย `orders?filter=(client_uuid="<ค่าที่ผูกไว้>")`
+ทดสอบไว้แล้วใน `node backend/verify-qr-receipt-link.mjs`
 
 ## สำรองข้อมูล
 

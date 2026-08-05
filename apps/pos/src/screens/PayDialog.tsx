@@ -79,6 +79,11 @@ export function PayDialog({
       // บิลนี้แปลงมาจากออร์เดอร์ QR — ต้องปิดออร์เดอร์ต้นทางกับรอบนั่งด้วย
       // ผ่านคิวเดียวกับบิลทุกใบ (ไม่เรียกเซิร์ฟเวอร์ตรง) เพื่อให้ทนเน็ตหลุดได้
       // เหมือนกัน ไม่ใช่แค่บิลใหม่ที่ปลอดภัยแต่ของเก่าค้างสถานะผิด
+      //
+      // linked_order_client_uuid ผูกเลขบิลชั่วคราว (ติดลบ) ของออร์เดอร์ QR
+      // เข้ากับเลขใบเสร็จจริงของบิลใหม่ใบนี้ — เก็บ client_uuid เพราะ record id
+      // ของบิลใหม่ยังไม่ถูกสร้างบนเซิร์ฟเวอร์ ณ จุดนี้ (ดูรายละเอียดที่
+      // backend/pb_migrations/1753900500_orders_linked_order.js)
       if (sourceOrderIds && sourceOrderIds.length > 0) {
         for (const id of sourceOrderIds) {
           await enqueue({
@@ -86,7 +91,7 @@ export function PayDialog({
             op: 'update',
             clientUuid: id,
             serverId: id,
-            payload: { status: 'paid' },
+            payload: { status: 'paid', linked_order_client_uuid: result.order.clientUuid },
           });
         }
       }
