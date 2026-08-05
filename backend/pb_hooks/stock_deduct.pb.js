@@ -42,8 +42,14 @@ onRecordAfterCreateRequest((e) => {
   }
   if (already) return;
 
+  // record.get()/item.get() บนฟิลด์ json ที่ไม่เคยตั้งค่า คืนค่าดิบที่ยัง
+  // truthy อยู่ (ไม่ใช่ null/undefined) แต่ String() แล้วได้ "" เปล่าๆ — ต้อง
+  // เช็คความยาวสตริงก่อน JSON.parse() เสมอ ไม่งั้นเจอ "Unexpected end of
+  // JSON input" ทันทีสำหรับเมนูที่ยังไม่เคยตั้งสูตรอาหารเลย (พบจากการทดสอบจริง
+  // ตอน verify — เมนูส่วนใหญ่ในระบบยังไม่มี recipe บันทึกไว้)
   const rawLines = record.get('lines');
-  const lines = rawLines ? JSON.parse(String(rawLines)) : [];
+  const linesStr = rawLines ? String(rawLines) : '';
+  const lines = linesStr ? JSON.parse(linesStr) : [];
   if (!Array.isArray(lines) || lines.length === 0) return;
 
   // รวมยอดที่ต้องตัดต่อวัตถุดิบก่อน (หลายเมนูในบิลอาจใช้วัตถุดิบร่วมกัน)
@@ -62,7 +68,8 @@ onRecordAfterCreateRequest((e) => {
     }
 
     const rawRecipe = item.get('recipe');
-    const recipe = rawRecipe ? JSON.parse(String(rawRecipe)) : [];
+    const recipeStr = rawRecipe ? String(rawRecipe) : '';
+    const recipe = recipeStr ? JSON.parse(recipeStr) : [];
     if (!Array.isArray(recipe)) continue;
 
     for (const rline of recipe) {

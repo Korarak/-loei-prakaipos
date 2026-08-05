@@ -239,8 +239,13 @@ routerAdd('POST', '/api/public/orders', (c) => {
     const requestedOptionIds = Array.isArray(raw?.modifierOptionIds)
       ? raw.modifierOptionIds.filter((x) => typeof x === 'string')
       : [];
+    // item.get() บนฟิลด์ json ที่ไม่เคยตั้งค่า คืนค่าดิบที่ยัง truthy อยู่
+    // (ไม่ใช่ null/undefined) แต่ String() แล้วได้ "" เปล่าๆ — ต้องเช็คความยาว
+    // สตริงก่อน JSON.parse() ไม่งั้นเจอ "Unexpected end of JSON input" ทันที
+    // สำหรับเมนูที่ยังไม่เคยตั้งตัวเลือก/ท็อปปิ้งเลย (พบจากการทดสอบจริง)
     const rawGroups = item.get('modifier_groups');
-    const groups = rawGroups ? JSON.parse(String(rawGroups)) : [];
+    const groupsStr = rawGroups ? String(rawGroups) : '';
+    const groups = groupsStr ? JSON.parse(groupsStr) : [];
     const modifiers = [];
     let unitPrice = item.getInt('price');
 

@@ -10,7 +10,15 @@
 npm run pb:up                      # เปิด PocketBase ที่ :8095
 docker exec prakaipos-pb pocketbase admin create dev@prakaipos.local devpassword123 --dir /pb_data
 node backend/seed.mjs              # ใส่ข้อมูลตัวอย่าง 2 ร้าน
-node backend/verify-isolation.mjs  # ตรวจว่ากฎแยกข้อมูลทำงาน
+
+# ตรวจกฎ/hook สิทธิ์ทั้งหมด — พังแล้วเงียบไม่มี error ให้เห็น ต้องรันหลังแก้
+# อะไรก็ตามที่เกี่ยวกับ createRule/updateRule/pb_hooks
+node backend/verify-isolation.mjs         # แยกข้อมูลระหว่างร้าน
+node backend/verify-auth.mjs              # เข้าระบบด้วย PIN
+node backend/verify-qr-order.mjs          # เส้นทาง QR Order
+node backend/verify-menu-price-guard.mjs  # พนักงานแก้เมนูได้แค่ sold_out
+node backend/verify-plan-guard.mjs        # แผนสมาชิก/บล็อก QR Order ตอน trial
+node backend/verify-stock-deduct.mjs      # ตัดสต๊อก/คืนสต๊อกอัตโนมัติ
 ```
 
 หน้า admin: <http://127.0.0.1:8095/_/>
@@ -95,22 +103,27 @@ node backend/verify-isolation.mjs  # ตรวจว่ากฎแยกข้�
 ### ข้อจำกัดของ PocketBase JSVM ที่เจอระหว่างทาง
 
 ฟังก์ชันและค่าคงที่ที่ประกาศไว้ **ระดับบนสุดของไฟล์ .pb.js มองไม่เห็นจาก
-ภายใน callback ของ `routerAdd`** แม้ประกาศไว้ก่อนหน้าในไฟล์เดียวกัน — ทดสอบ
-ยืนยันแล้วด้วย route debug ชั่วคราว (เรียกแล้วได้ ReferenceError "is not
-defined" ทันที) ทุกอย่างที่ callback ต้องใช้จึงต้องประกาศ "อยู่ภายใน
-callback เดียวกัน" เท่านั้น ดูรายละเอียดในคอมเมนต์หัวไฟล์ `qr_order.pb.js`
+ภายใน callback ของ `routerAdd` หรือ `onRecordBeforeUpdateRequest`/hook อื่นๆ
+ทุกชนิด** แม้ประกาศไว้ก่อนหน้าในไฟล์เดียวกัน — ทดสอบยืนยันแล้วทั้งสองแบบ
+(เรียกแล้วได้ ReferenceError "is not defined" ทันที ล่าสุดพบใน
+`menu_item_price_guard.pb.js`) ทุกอย่างที่ callback ต้องใช้จึงต้องประกาศ
+"อยู่ภายใน callback เดียวกัน" เท่านั้น ดูรายละเอียดในคอมเมนต์หัวไฟล์ `qr_order.pb.js`
 
 และการเทียบฟิลด์ `created` ในตัวกรอง (filter) ต้องใช้รูปแบบเวลาแบบเว้นวรรค
 `"YYYY-MM-DD HH:MM:SS.sssZ"` ไม่ใช่ ISO 8601 แบบมี `T` คั่น — ใช้ `T` แล้ว
 filter จะคืน 0 แถวเสมอโดยไม่มี error ให้เห็น (พบตอนทดสอบโค้ดจำกัดอัตราการสั่ง
 ที่ไม่เคยทำงานเลยเงียบๆ)
 
-## ยังทำไม่เสร็จ — ต้องทำก่อนเปิดให้ร้านจริงใช้
+และ `record.get()` บนฟิลด์ type `json` ที่**ไม่เคยถูกตั้งค่าเลย** คืนค่าดิบที่
+ยัง truthy อยู่ (ไม่ใช่ `null`/`undefined`) แต่ `String(...)` แล้วได้ `""`
+เปล่าๆ — เขียน `raw ? JSON.parse(String(raw)) : []` แบบเดิมจึงพัง (เจอ
+`SyntaxError: Unexpected end of JSON input`) ทุกครั้งที่เมนูยังไม่เคยตั้ง
+`modifier_groups`/`recipe` เลย ต้องเช็คความยาวของสตริงหลัง `String()` ก่อน
+`JSON.parse()` เสมอ (แก้แล้วใน `qr_order.pb.js` และ `stock_deduct.pb.js` —
+พบตอนรัน `verify-qr-order.mjs`/`verify-stock-deduct.mjs` ครั้งแรกหลังเพิ่ม
+ฟิลด์ `recipe` ซึ่งเมนูส่วนใหญ่ในระบบยังไม่มีค่า)
 
-> **พนักงานยังแก้ราคาเมนูได้**
->
-> `menu_items.updateRule` เปิดให้ทั้งร้านแก้ เพื่อให้พนักงานกด "ของหมด" ได้
-> ต้องเพิ่ม hook จำกัดให้พนักงานแก้ได้เฉพาะฟิลด์ `sold_out`
+## ยังทำไม่เสร็จ — ต้องทำก่อนเปิดให้ร้านจริงใช้
 
 > **เลขบิลชั่วคราวของ QR order ยังไม่ถูกผูกเข้ากับเลขใบเสร็จจริง**
 >
