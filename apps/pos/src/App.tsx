@@ -1,4 +1,4 @@
-import type { OrderLine } from '@prakaipos/shared';
+import type { Order, OrderLine } from '@prakaipos/shared';
 import { newUuid } from '@prakaipos/shared';
 import { ArrowLeft } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -18,6 +18,7 @@ import { DashboardScreen } from './screens/DashboardScreen.js';
 import { HomeScreen } from './screens/HomeScreen.js';
 import { LockScreen } from './screens/LockScreen.js';
 import { MenuScreen } from './screens/MenuScreen.js';
+import { OrdersScreen } from './screens/OrdersScreen.js';
 import { PrinterScreen } from './screens/PrinterScreen.js';
 import { SellScreen, type TablePreset } from './screens/SellScreen.js';
 import { SetupScreen } from './screens/SetupScreen.js';
@@ -28,7 +29,16 @@ import { refreshShopSettings, type ShopSettings } from './shop/shopSettings.js';
 import { useSync } from './sync/useSync.js';
 
 /** หน้าจอที่เปิดอยู่หลังเข้าระบบแล้ว */
-type Screen = 'home' | 'sell' | 'menu' | 'staff' | 'dashboard' | 'printer' | 'tables' | 'stock';
+type Screen =
+  | 'home'
+  | 'sell'
+  | 'menu'
+  | 'staff'
+  | 'dashboard'
+  | 'printer'
+  | 'tables'
+  | 'stock'
+  | 'orders';
 
 /** ชื่อหน้าที่โชว์แทนชื่อร้านใน header ตอนไม่ได้อยู่หน้าแรก/หน้าขาย */
 const SCREEN_TITLE: Partial<Record<Screen, string>> = {
@@ -38,10 +48,11 @@ const SCREEN_TITLE: Partial<Record<Screen, string>> = {
   staff: 'จัดการพนักงาน',
   stock: 'วัตถุดิบและสต๊อก',
   printer: 'ตั้งค่าเครื่องพิมพ์',
+  orders: 'บิลย้อนหลัง',
 };
 
 /** หน้าที่ใช้ไม่บ่อย ไม่อยู่ในแถบนำทางล่าง — ต้องมีปุ่มกลับหน้าแรกใน header แทน */
-const BACK_ONLY_SCREENS: Screen[] = ['staff', 'stock', 'printer'];
+const BACK_ONLY_SCREENS: Screen[] = ['staff', 'stock', 'printer', 'orders'];
 
 const NAV_SCREENS: BottomNavScreen[] = ['sell', 'tables', 'dashboard', 'menu'];
 
@@ -137,6 +148,21 @@ function PosShell({
     setScreen('sell');
   }
 
+  // "แก้ไขบิล" จากหน้าบิลย้อนหลัง — เปิดตะกร้าใหม่ด้วยรายการเดิม บิลเดิมจะถูกยกเลิก
+  // ก็ต่อเมื่อบิลใหม่ปิดสำเร็จเท่านั้น (ดูเหตุผลใน SellScreen.tsx onDone)
+  function editBill(order: Order) {
+    const lines: OrderLine[] = order.lines.map((l) => ({ ...l, clientUuid: newUuid() }));
+    setTablePreset({
+      requestId: Date.now(),
+      tableNo: order.tableNo,
+      tableSessionId: '',
+      sourceOrderIds: [],
+      lines,
+      replacesOrder: { clientUuid: order.clientUuid, orderNo: order.orderNo },
+    });
+    setScreen('sell');
+  }
+
   useEffect(() => {
     // ดึงค่าตั้งร้าน (โดยเฉพาะเลขพร้อมเพย์) มาแคชไว้ให้หน้ารับเงินใช้ตอนเน็ตหลุด
     void refreshShopSettings(device.shopId).then(setShop);
@@ -202,6 +228,14 @@ function PosShell({
               />
             )}
             {screen === 'dashboard' && <DashboardScreen shopId={device.shopId} />}
+            {screen === 'orders' && (
+              <OrdersScreen
+                shopId={device.shopId}
+                shopName={device.shopName}
+                profile={session.profile}
+                onEditBill={editBill}
+              />
+            )}
             {screen === 'printer' && <PrinterScreen />}
             {screen === 'stock' && (
               <StockScreen shopId={device.shopId} profile={session.profile} />

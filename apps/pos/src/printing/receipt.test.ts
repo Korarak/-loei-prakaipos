@@ -82,6 +82,25 @@ describe('buildOrderReceipt', () => {
     expect(promptpay).toContain('พร้อมเพย์');
   });
 
+  it('มีหัวเรื่องใบเสร็จรับเงินและช่องทางการขาย', () => {
+    const pos = decode(buildOrderReceipt(sampleOrder(), 'ครัวน้อง'));
+    expect(pos).toContain('ใบเสร็จรับเงิน');
+    expect(pos).toContain('ช่องทาง หน้าร้าน');
+
+    const qr = decode(buildOrderReceipt(sampleOrder({ channel: 'qr' }), 'ครัวน้อง'));
+    expect(qr).toContain('ช่องทาง ลูกค้าสั่งผ่าน QR');
+  });
+
+  it('แสดงชื่อพนักงานเมื่อส่งมาให้เท่านั้น', () => {
+    const withStaff = decode(
+      buildOrderReceipt(sampleOrder(), 'ครัวน้อง', { staffName: 'เจ้าของร้าน' }),
+    );
+    expect(withStaff).toContain('พนักงาน เจ้าของร้าน');
+
+    const withoutStaff = decode(buildOrderReceipt(sampleOrder(), 'ครัวน้อง'));
+    expect(withoutStaff).not.toContain('พนักงาน ');
+  });
+
   it('จบด้วยคำสั่งตัดกระดาษ', () => {
     const bytes = buildOrderReceipt(sampleOrder(), 'ครัวน้อง');
     const tail = bytes.slice(-3);

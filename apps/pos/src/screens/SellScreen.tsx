@@ -1,5 +1,6 @@
 import type { MenuItem, Order, OrderLine, SelectedModifier } from '@prakaipos/shared';
 import { formatBaht } from '@prakaipos/shared';
+import { ShoppingCart } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { StaffProfile } from '../auth/credentials.js';
 import type { DeviceInfo } from '../auth/device.js';
@@ -13,16 +14,18 @@ import {
   itemCount,
   reconcileDiscount,
   removeLine,
+  setNote,
   setQty,
   subtotal,
   total,
   type CartState,
 } from '../sell/cart.js';
+import { voidOrder } from '../sell/checkout.js';
 import { ModifierPicker } from './ModifierPicker.js';
 import { PayDialog } from './PayDialog.js';
 import { SplitBillDialog } from './SplitBillDialog.js';
 
-/** ตะกร้าที่มาจากการกด "รับเงิน" ในแผงออร์เดอร์ QR ของโต๊ะหนึ่ง */
+/** ตะกร้าที่มาจากการกด "รับเงิน" ในแผงออร์เดอร์ QR ของโต๊ะหนึ่ง หรือจาก "แก้ไขบิล" ในบิลย้อนหลัง */
 export interface TablePreset {
   /** เปลี่ยนค่าทุกครั้งที่กด แม้จะเป็นโต๊ะเดิม เพื่อให้ effect seed ตะกร้าทำงานซ้ำได้ */
   requestId: number;
@@ -30,6 +33,12 @@ export interface TablePreset {
   tableSessionId: string;
   sourceOrderIds: string[];
   lines: OrderLine[];
+  /**
+   * มาจาก "แก้ไขบิล" ในหน้าบิลย้อนหลัง — เลขที่/client_uuid ของบิลเดิมที่บิลนี้จะมาแทน
+   * บิลเดิมจะถูกยกเลิก (void) ก็ต่อเมื่อบิลใหม่ปิดสำเร็จเท่านั้น (ดูใน onDone ของ PayDialog)
+   * เพื่อไม่ให้ข้อมูลการขายหายถ้าพนักงานกดแก้ไขแล้วเปลี่ยนใจล้างบิลทิ้งกลางทาง
+   */
+  replacesOrder?: { clientUuid: string; orderNo: number };
 }
 
 /**
@@ -68,14 +77,18 @@ export function SellScreen({
   // เมนูที่กำลังเลือกตัวเลือก/ท็อปปิ้งอยู่ — ว่างสำหรับเมนูที่ไม่มีตัวเลือก (เพิ่มลงตะกร้าทันทีตามเดิม)
   const [pickingItem, setPickingItem] = useState<MenuItem | null>(null);
   const [splitting, setSplitting] = useState(false);
+  // บรรทัดที่กำลังพิมพ์หมายเหตุอยู่ — ว่างเมื่อไม่มีบรรทัดไหนกำลังแก้
+  const [editingNote, setEditingNote] = useState<string | null>(null);
+  const [noteDraft, setNoteDraft] = useState('');
   // กลุ่มที่เหลือให้จ่ายทีละใบตอนแยกบิล — ว่าง = จ่ายบิลเดียวปกติ
   const [payQueue, setPayQueue] = useState<CartState[]>([]);
   const [splitDone, setSplitDone] = useState<Order[]>([]);
-  // บิลของโต๊ะ QR ที่กำลังจะปิด — ไม่มีค่าเมื่อเป็นการขายหน้าร้านปกติ
+  // บิลของโต๊ะ QR ที่กำลังจะปิด หรือบิลเดิมที่กำลังแก้ไข — ไม่มีค่าเมื่อเป็นการขายหน้าร้านปกติ
   const [activeTable, setActiveTable] = useState<{
     tableNo: string;
     tableSessionId: string;
     sourceOrderIds: string[];
+    replacesOrder?: { clientUuid: string; orderNo: number };
   } | null>(null);
 
   useEffect(() => {
@@ -85,6 +98,7 @@ export function SellScreen({
       tableNo: tablePreset.tableNo,
       tableSessionId: tablePreset.tableSessionId,
       sourceOrderIds: tablePreset.sourceOrderIds,
+      replacesOrder: tablePreset.replacesOrder,
     });
     setLastOrder(null);
     onTablePresetHandled?.();
@@ -124,7 +138,7 @@ export function SellScreen({
     setPrinting(true);
     setPrintError(null);
     try {
-      await printBytes(buildOrderReceipt(order, device.shopName));
+      await printBytes(buildOrderReceipt(order, device.shopName, { staffName: profile.displayName }));
     } catch (err) {
       setPrintError(err instanceof Error ? err.message : 'พิมพ์ใบเสร็จไม่สำเร็จ');
     } finally {
@@ -194,7 +208,13 @@ export function SellScreen({
 
       <aside className="sell__cart">
         <div className="cart__head">
-          <b>{activeTable ? `บิลโต๊ะ ${activeTable.tableNo || '—'}` : 'บิลปัจจุบัน'}</b>
+          <b>
+            {activeTable?.replacesOrder
+              ? `แก้ไขบิลเลขที่ ${activeTable.replacesOrder.orderNo}`
+              : activeTable
+                ? `บิลโต๊ะ ${activeTable.tableNo || '—'}`
+                : 'บิลปัจจุบัน'}
+          </b>
           {!isEmpty(cart) && (
             <button
               type="button"
@@ -208,6 +228,13 @@ export function SellScreen({
             </button>
           )}
         </div>
+
+        {activeTable?.replacesOrder && (
+          <p className="hint" style={{ marginTop: -4 }}>
+            แก้ตะกร้าแล้วกด "รับเงิน" เพื่อออกบิลใหม่แทน — บิลเลขที่{' '}
+            {activeTable.replacesOrder.orderNo} จะถูกยกเลิกก็ต่อเมื่อบิลใหม่นี้ปิดสำเร็จ
+          </p>
+        )}
 
         {lastOrder !== null && (
           <div className="cart__done">
@@ -256,7 +283,10 @@ export function SellScreen({
         )}
 
         {isEmpty(cart) ? (
-          <p className="hint cart__empty">กดเมนูทางซ้ายเพื่อเริ่มบิล</p>
+          <div className="cart__empty">
+            <ShoppingCart className="cart__empty-icon" size={32} aria-hidden="true" />
+            <p className="hint">กดเมนูทางซ้ายเพื่อเริ่มบิล</p>
+          </div>
         ) : (
           <ul className="cart__lines">
             {cart.lines.map((l) => (
@@ -265,33 +295,72 @@ export function SellScreen({
                   <span className="cline__name">{l.nameSnapshot}</span>
                   <span className="cline__sum">{formatBaht(l.unitPrice * l.qty)}</span>
                 </div>
-                <div className="cline__ctl">
-                  <button
-                    type="button"
-                    className="qtybtn"
-                    aria-label={`ลด ${l.nameSnapshot}`}
-                    onClick={() => changeQty(l.clientUuid, l.qty - 1)}
-                  >
-                    −
-                  </button>
-                  <span className="cline__qty">{l.qty}</span>
-                  <button
-                    type="button"
-                    className="qtybtn"
-                    aria-label={`เพิ่ม ${l.nameSnapshot}`}
-                    onClick={() => changeQty(l.clientUuid, l.qty + 1)}
-                  >
-                    +
-                  </button>
-                  <span className="cline__unit">{formatBaht(l.unitPrice)}/หน่วย</span>
-                  <button
-                    type="button"
-                    className="linkbtn"
-                    onClick={() => setCart((c) => reconcileDiscount(removeLine(c, l.clientUuid)))}
-                  >
-                    ลบ
-                  </button>
-                </div>
+
+                {editingNote === l.clientUuid ? (
+                  <div className="cline__noteedit">
+                    <input
+                      className="cline__noteinput"
+                      value={noteDraft}
+                      onChange={(e) => setNoteDraft(e.target.value)}
+                      placeholder="เช่น ไม่ใส่ผักชี, ไม่เผ็ด"
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      className="linkbtn"
+                      onClick={() => {
+                        setCart((c) => setNote(c, l.clientUuid, noteDraft.trim()));
+                        setEditingNote(null);
+                      }}
+                    >
+                      บันทึก
+                    </button>
+                    <button type="button" className="linkbtn" onClick={() => setEditingNote(null)}>
+                      ยกเลิก
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {l.note && <p className="cline__note">หมายเหตุ: {l.note}</p>}
+                    <div className="cline__ctl">
+                      <button
+                        type="button"
+                        className="qtybtn"
+                        aria-label={`ลด ${l.nameSnapshot}`}
+                        onClick={() => changeQty(l.clientUuid, l.qty - 1)}
+                      >
+                        −
+                      </button>
+                      <span className="cline__qty">{l.qty}</span>
+                      <button
+                        type="button"
+                        className="qtybtn"
+                        aria-label={`เพิ่ม ${l.nameSnapshot}`}
+                        onClick={() => changeQty(l.clientUuid, l.qty + 1)}
+                      >
+                        +
+                      </button>
+                      <span className="cline__unit">{formatBaht(l.unitPrice)}/หน่วย</span>
+                      <button
+                        type="button"
+                        className="linkbtn"
+                        onClick={() => {
+                          setEditingNote(l.clientUuid);
+                          setNoteDraft(l.note);
+                        }}
+                      >
+                        {l.note ? 'แก้หมายเหตุ' : '+ หมายเหตุ'}
+                      </button>
+                      <button
+                        type="button"
+                        className="linkbtn"
+                        onClick={() => setCart((c) => reconcileDiscount(removeLine(c, l.clientUuid)))}
+                      >
+                        ลบ
+                      </button>
+                    </div>
+                  </>
+                )}
               </li>
             ))}
           </ul>
@@ -372,6 +441,12 @@ export function SellScreen({
                 setLastOrder(null);
               }
               return;
+            }
+
+            // บิลใหม่ปิดสำเร็จแล้วเท่านั้นถึงยกเลิกบิลเดิม — ถ้าพนักงานล้างตะกร้าทิ้ง
+            // กลางทางหรือปิดบิลไม่สำเร็จ บิลเดิมต้องยังอยู่ครบ ไม่ใช่หายไปเฉยๆ
+            if (activeTable?.replacesOrder) {
+              void voidOrder(activeTable.replacesOrder.clientUuid);
             }
 
             setPaying(false);

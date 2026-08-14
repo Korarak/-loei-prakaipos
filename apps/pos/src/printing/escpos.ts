@@ -38,9 +38,9 @@ export function line(s = ''): Uint8Array {
   return concatBytes([textBytes(s), LF]);
 }
 
-/** เส้นคั่นเต็มความกว้างกระดาษ */
-export function divider(charsPerLine: number): Uint8Array {
-  return line('-'.repeat(charsPerLine));
+/** เส้นคั่นเต็มความกว้างกระดาษ — ใช้ "=" คั่นหัว/ท้ายใบเสร็จให้เด่นกว่ารายการย่อยที่คั่นด้วย "-" */
+export function divider(charsPerLine: number, char: '-' | '=' = '-'): Uint8Array {
+  return line(char.repeat(charsPerLine));
 }
 
 export function concatBytes(parts: readonly Uint8Array[]): Uint8Array {

@@ -643,7 +643,22 @@ body {
 }
 
 .cart__empty {
-  padding: 20px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 16px;
+  text-align: center;
+}
+
+.cart__empty .hint {
+  margin: 0;
+}
+
+.cart__empty-icon {
+  color: var(--line);
 }
 
 .cart__lines {
@@ -714,6 +729,39 @@ body {
   font-size: 12.5px;
   color: var(--ink2);
   font-variant-numeric: tabular-nums;
+}
+
+.cline__note {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--ink2);
+  overflow-wrap: anywhere;
+}
+
+.cline__noteedit {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.cline__noteinput {
+  flex: 1;
+  min-width: 140px;
+  font: inherit;
+  font-size: 14px;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.cline__noteinput:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .cart__paybtns {
@@ -1005,6 +1053,17 @@ body {
   background: var(--chip);
 }
 
+/* การ์ดหน้าขาย — งานที่พนักงานกดมากที่สุด ให้เด่นกว่าการ์ดอื่นแบบเดียวกับ
+   dash__card:first-child ที่ขีดสีซ้ายบอกรายการเด่น */
+.home__card--primary {
+  border-left: 3px solid var(--accent);
+}
+
+.home__card--primary .home__icon {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
 .home__icon {
   width: 44px;
   height: 44px;
@@ -1191,6 +1250,129 @@ body {
 .badge--off {
   background: color-mix(in srgb, var(--ink2) 16%, transparent);
   color: var(--ink2);
+}
+
+.badge--ok {
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+  color: var(--ok);
+}
+
+.badge--warn {
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn);
+}
+
+.hist__toolbar {
+  justify-content: space-between;
+}
+
+.hist__day {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+}
+
+.hist__filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 var(--sp-4);
+  margin-top: var(--sp-3);
+}
+
+.hist__search {
+  font: inherit;
+  font-size: 15px;
+  min-height: var(--touch);
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.hist__search:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.hist__chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.chipbtn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink2);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chipbtn--on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ── รายการบิลย้อนหลัง ── */
+
+.orderrow {
+  font: inherit;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  box-shadow: var(--shadow-1);
+}
+
+.orderrow:active {
+  border-color: var(--accent);
+  background: var(--chip);
+}
+
+.orderrow--void {
+  opacity: 0.55;
+}
+
+.orderrow__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.orderrow__no {
+  font-weight: 700;
+}
+
+.orderrow__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink2);
+  margin-top: 3px;
+}
+
+.orderrow__total {
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .mrow__img {

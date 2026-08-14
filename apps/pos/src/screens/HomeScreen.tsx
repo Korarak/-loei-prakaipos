@@ -1,4 +1,13 @@
-import { LayoutDashboard, Package, Printer, Receipt, Table2, UtensilsCrossed, Users } from 'lucide-react';
+import {
+  History,
+  LayoutDashboard,
+  Package,
+  Printer,
+  Receipt,
+  Table2,
+  UtensilsCrossed,
+  Users,
+} from 'lucide-react';
 import type { StaffProfile } from '../auth/credentials.js';
 
 /**
@@ -10,7 +19,15 @@ import type { StaffProfile } from '../auth/credentials.js';
  * ตอนต้นกะ ไม่ใช่ทุกบิล จึงไม่ได้เพิ่มขั้นตอนตอนขายจริง)
  */
 
-export type HomeDestination = 'sell' | 'menu' | 'staff' | 'dashboard' | 'printer' | 'tables' | 'stock';
+export type HomeDestination =
+  | 'sell'
+  | 'menu'
+  | 'staff'
+  | 'dashboard'
+  | 'printer'
+  | 'tables'
+  | 'stock'
+  | 'orders';
 
 interface HomeScreenProps {
   shopName: string;
@@ -36,7 +53,7 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
       <div className="home__grid">
         <button
           type="button"
-          className="home__card fade-in"
+          className="home__card home__card--primary fade-in"
           style={delay()}
           onClick={() => onNavigate('sell')}
         >
@@ -58,6 +75,19 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
           </span>
           <span className="home__name">แดชบอร์ด</span>
           <span className="home__sub">ยอดขายวันนี้ เมนูขายดี</span>
+        </button>
+
+        <button
+          type="button"
+          className="home__card fade-in"
+          style={delay()}
+          onClick={() => onNavigate('orders')}
+        >
+          <span className="home__icon" aria-hidden="true">
+            <History size={22} />
+          </span>
+          <span className="home__name">บิลย้อนหลัง</span>
+          <span className="home__sub">ค้นบิลเก่า พิมพ์ซ้ำ ยกเลิกบิล</span>
         </button>
 
         {tablesEnabled && (
