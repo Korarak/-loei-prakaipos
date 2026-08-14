@@ -7,13 +7,17 @@ import { ConfirmDialog } from '../components/ConfirmDialog.js';
 import { isPrinterSupported, printBytes } from '../printing/bluetoothPrinter.js';
 import { buildOrderReceipt } from '../printing/receipt.js';
 import { ordersOfDay, voidOrder } from '../sell/checkout.js';
+import { pullOrders } from '../sync/pullOrders.js';
 
 /**
  * บิลย้อนหลัง
  *
  * ใช้ `ordersOfDay`/`voidOrder` ที่มีอยู่แล้วใน sell/checkout.ts (เขียนไว้ตั้งแต่
  * ก้อนที่ 1 พร้อมดัชนี status+createdAt ใน db.ts) — เดิมมีแต่ตรรกะ ไม่มีหน้าจอ
- * ดึงจากเครื่องนี้เท่านั้น (ยังไม่มีซิงก์ขาลงของบิล) จึงเห็นเฉพาะบิลที่เครื่องนี้ขายเอง
+ *
+ * แสดงบิลที่มีอยู่ในเครื่องก่อนเสมอ (เร็ว ใช้ได้ตอนออฟไลน์) แล้วค่อยดึงบิลจาก
+ * เครื่องอื่นในร้านเดียวกันมาเติมเบื้องหลัง (ดู sync/pullOrders.ts) — ร้านที่มี
+ * เครื่องเดียวจะไม่เห็นความต่างอะไร เพราะบิลทั้งหมดอยู่ในเครื่องอยู่แล้ว
  */
 
 interface OrdersScreenProps {
@@ -74,6 +78,15 @@ export function OrdersScreen({ shopId, shopName, profile, onEditBill }: OrdersSc
   const load = useCallback(async () => {
     setOrders(null);
     setOrders(await ordersOfDay(shopId, day));
+
+    if (!navigator.onLine) return;
+    try {
+      await pullOrders(shopId);
+      setOrders(await ordersOfDay(shopId, day));
+    } catch {
+      // เงียบไว้โดยตั้งใจ — หน้าจอยังใช้บิลที่เครื่องนี้มีอยู่ได้ต่อ
+      // แค่อาจไม่เห็นบิลจากเครื่องอื่นที่เพิ่งขายไป
+    }
   }, [shopId, day]);
 
   useEffect(() => {
