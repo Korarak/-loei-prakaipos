@@ -1,4 +1,4 @@
-import type { ModifierGroup, RecipeLine, Satang } from '@prakaipos/shared';
+import type { MenuKind, ModifierGroup, RecipeLine, Satang } from '@prakaipos/shared';
 import { db } from '../db/db.js';
 import { enqueue } from '../db/outbox.js';
 import { getShopSettings } from '../shop/shopSettings.js';
@@ -41,12 +41,14 @@ function requireOnline(action: string): void {
 export async function createCategory(
   shopId: string,
   name: string,
+  kind: MenuKind,
   sortOrder: number,
 ): Promise<void> {
   requireOnline('การเพิ่มหมวด');
   await pb.collection('categories').create({
     shop: shopId,
     name,
+    kind,
     sort_order: sortOrder,
     active: true,
   });
@@ -56,11 +58,12 @@ export async function createCategory(
 export async function updateCategory(
   shopId: string,
   id: string,
-  patch: { name?: string; sortOrder?: number; active?: boolean },
+  patch: { name?: string; kind?: MenuKind; sortOrder?: number; active?: boolean },
 ): Promise<void> {
   requireOnline('การแก้ไขหมวด');
   await pb.collection('categories').update(id, {
     ...(patch.name !== undefined && { name: patch.name }),
+    ...(patch.kind !== undefined && { kind: patch.kind }),
     ...(patch.sortOrder !== undefined && { sort_order: patch.sortOrder }),
     ...(patch.active !== undefined && { active: patch.active }),
   });

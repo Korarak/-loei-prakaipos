@@ -237,6 +237,20 @@ describe('readLocalMenu', () => {
 
     expect((await readLocalMenu('shop-b')).items).toEqual([]);
   });
+
+  it('เก็บ kind ของหมวด และถือว่าเป็นอาหารถ้าเซิร์ฟเวอร์ยังไม่มีค่า', async () => {
+    mockLists(
+      [cat('c1', { kind: 'drink' }), cat('c2', { kind: '' })],
+      [item('m1')],
+    );
+    await pullMenu(SHOP, { now: NOW });
+
+    vi.restoreAllMocks();
+    const menu = await readLocalMenu(SHOP);
+
+    expect(menu.categories.find((c) => c.id === 'c1')?.kind).toBe('drink');
+    expect(menu.categories.find((c) => c.id === 'c2')?.kind).toBe('food');
+  });
 });
 
 describe('resetMenuCursor', () => {

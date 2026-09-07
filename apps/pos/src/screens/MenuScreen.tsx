@@ -1,5 +1,19 @@
-import type { Category, Ingredient, MenuItem, ModifierGroup, RecipeLine } from '@prakaipos/shared';
-import { formatBaht, newUuid, parseBahtInput } from '@prakaipos/shared';
+import type {
+  Category,
+  Ingredient,
+  MenuItem,
+  MenuKind,
+  ModifierGroup,
+  RecipeLine,
+} from '@prakaipos/shared';
+import {
+  formatBaht,
+  MENU_KIND_LABEL,
+  MENU_KINDS,
+  MenuKindIcon,
+  newUuid,
+  parseBahtInput,
+} from '@prakaipos/shared';
 import { useState } from 'react';
 import type { StaffProfile } from '../auth/credentials.js';
 import { ConfirmDialog } from '../components/ConfirmDialog.js';
@@ -12,6 +26,7 @@ import {
   deleteCategory,
   deleteMenuItem,
   setSoldOut,
+  updateCategory,
   updateMenuItem,
 } from '../menu/menuActions.js';
 import { useIngredients } from '../stock/useIngredients.js';
@@ -34,6 +49,8 @@ export function MenuScreen({ shopId, profile }: MenuScreenProps) {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<MenuItem | 'new' | null>(null);
   const [addingCategory, setAddingCategory] = useState(false);
+  // หมวดที่กำลังแก้ชื่อ/ประเภท — ว่างเมื่อไม่ได้แก้หมวดไหน
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<MenuItem | null>(null);
 
   const isOwner = profile.role === 'owner';
@@ -108,6 +125,7 @@ export function MenuScreen({ shopId, profile }: MenuScreenProps) {
             onToggleSoldOut={(item) => void run(() => setSoldOut(item.id, !item.soldOut))}
             onEditItem={setEditing}
             onDeleteItem={setConfirmDelete}
+            onEditCategory={() => setEditingCategory(cat)}
             onDeleteCategory={() =>
               void run(async () => {
                 await deleteCategory(shopId, cat.id);
@@ -146,10 +164,23 @@ export function MenuScreen({ shopId, profile }: MenuScreenProps) {
       {addingCategory && (
         <CategoryDialog
           onCancel={() => setAddingCategory(false)}
-          onSave={(name) =>
+          onSave={(name, kind) =>
             void run(async () => {
-              await createCategory(shopId, name, menu.categories.length);
+              await createCategory(shopId, name, kind, menu.categories.length);
               setAddingCategory(false);
+            })
+          }
+        />
+      )}
+
+      {editingCategory && (
+        <CategoryDialog
+          initial={editingCategory}
+          onCancel={() => setEditingCategory(null)}
+          onSave={(name, kind) =>
+            void run(async () => {
+              await updateCategory(shopId, editingCategory.id, { name, kind });
+              setEditingCategory(null);
             })
           }
         />
@@ -190,6 +221,7 @@ function CategoryBlock({
   onToggleSoldOut,
   onEditItem,
   onDeleteItem,
+  onEditCategory,
   onDeleteCategory,
 }: {
   category: Category;
@@ -199,15 +231,25 @@ function CategoryBlock({
   onToggleSoldOut: (item: MenuItem) => void;
   onEditItem: (item: MenuItem) => void;
   onDeleteItem: (item: MenuItem) => void;
+  onEditCategory: () => void;
   onDeleteCategory: () => void;
 }) {
   return (
     <section className="mcat">
       <div className="mcat__head">
         <h2>{category.name}</h2>
+        <span className="mcat__kind">
+          <MenuKindIcon kind={category.kind} size={14} />
+          {MENU_KIND_LABEL[category.kind]}
+        </span>
         <span className="muted">{items.length} รายการ</span>
+        {isOwner && (
+          <button type="button" className="linkbtn" onClick={onEditCategory}>
+            แก้หมวด
+          </button>
+        )}
         {isOwner && items.length === 0 && (
-          <button type="button" className="linkbtn" onClick={onDeleteCategory}>
+          <button type="button" className="linkbtn linkbtn--danger" onClick={onDeleteCategory}>
             ลบหมวด
           </button>
         )}
@@ -222,7 +264,9 @@ function CategoryBlock({
               {item.imageUrl ? (
                 <img className="mrow__img" src={item.imageUrl} alt="" loading="lazy" />
               ) : (
-                <span className="mrow__img mrow__img--empty" aria-hidden="true" />
+                <span className="mrow__img mrow__img--empty" aria-hidden="true">
+                  <MenuKindIcon kind={category.kind} size={22} />
+                </span>
               )}
 
               <div className="mrow__info">
@@ -275,13 +319,17 @@ function CategoryBlock({
 }
 
 function CategoryDialog({
+  initial,
   onCancel,
   onSave,
 }: {
+  /** หมวดเดิมเมื่อเป็นการแก้ไข — ว่างเมื่อเป็นการเพิ่มหมวดใหม่ */
+  initial?: Category;
   onCancel: () => void;
-  onSave: (name: string) => void;
+  onSave: (name: string, kind: MenuKind) => void;
 }) {
-  const [name, setName] = useState('');
+  const [name, setName] = useState(initial?.name ?? '');
+  const [kind, setKind] = useState<MenuKind>(initial?.kind ?? 'food');
 
   return (
     <div className="sheet">
@@ -289,10 +337,10 @@ function CategoryDialog({
         className="sheet__panel"
         onSubmit={(e) => {
           e.preventDefault();
-          if (name.trim()) onSave(name.trim());
+          if (name.trim()) onSave(name.trim(), kind);
         }}
       >
-        <h2>เพิ่มหมวด</h2>
+        <h2>{initial ? 'แก้หมวด' : 'เพิ่มหมวด'}</h2>
         <label className="field">
           <span>ชื่อหมวด</span>
           {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
@@ -304,6 +352,25 @@ function CategoryDialog({
             required
           />
         </label>
+        <div className="field">
+          <span>ประเภท</span>
+          <div className="chips">
+            {MENU_KINDS.map((k) => (
+              <button
+                key={k}
+                type="button"
+                className={k === kind ? 'chip chip--on' : 'chip'}
+                onClick={() => setKind(k)}
+              >
+                <MenuKindIcon kind={k} size={16} />
+                {MENU_KIND_LABEL[k]}
+              </button>
+            ))}
+          </div>
+          <small className="hint">
+            หน้าขายและหน้าลูกค้าจะจัดกลุ่มอาหารขึ้นก่อนเครื่องดื่ม และใส่ไอคอนกำกับให้
+          </small>
+        </div>
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel}>
             ยกเลิก

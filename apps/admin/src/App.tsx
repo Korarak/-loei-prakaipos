@@ -1,7 +1,15 @@
 import { bahtToSatang, formatBaht } from '@prakaipos/shared';
-import { ArrowLeft, LogOut, Store } from 'lucide-react';
+import { ArrowLeft, Database, LogOut, Store } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { DevData } from './devData/DevData.js';
 import { loginAsAdmin, logout, pb } from './pb.js';
+
+/**
+ * เครื่องมือ "ดู/แก้ทุก collection" เปิดเฉพาะตอนพัฒนา — โหมด dev ของ Vite
+ * หรือ build ที่ตั้ง VITE_ADMIN_DEVTOOLS=1 ไว้ชัดเจน · build ปกติจะไม่มีปุ่มนี้
+ */
+const DEV_TOOLS =
+  import.meta.env.DEV || import.meta.env.VITE_ADMIN_DEVTOOLS === '1';
 
 const PLAN_LABEL: Record<string, string> = { trial: 'Trial', core: 'Core', plus: 'Plus' };
 
@@ -127,6 +135,7 @@ function AdminHome() {
   const [shops, setShops] = useState<ShopRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<ShopRow | null>(null);
+  const [view, setView] = useState<'shops' | 'data'>('shops');
 
   useEffect(() => {
     void pb
@@ -141,6 +150,24 @@ function AdminHome() {
       <header className="bar">
         <Store size={20} aria-hidden="true" className="bar__icon" />
         <h1>PrakaiPOS Admin</h1>
+        {DEV_TOOLS && (
+          <div className="seg">
+            <button
+              type="button"
+              className={view === 'shops' ? 'seg__btn seg__btn--on' : 'seg__btn'}
+              onClick={() => setView('shops')}
+            >
+              <Store size={15} aria-hidden="true" /> ร้าน
+            </button>
+            <button
+              type="button"
+              className={view === 'data' ? 'seg__btn seg__btn--on' : 'seg__btn'}
+              onClick={() => setView('data')}
+            >
+              <Database size={15} aria-hidden="true" /> ข้อมูลทั้งหมด (dev)
+            </button>
+          </div>
+        )}
         <div className="spacer" />
         <button type="button" className="btn" onClick={logout}>
           <LogOut size={16} aria-hidden="true" /> ออกจากระบบ
@@ -148,50 +175,88 @@ function AdminHome() {
       </header>
 
       <main className="main">
-        {error && <p className="alert">{error}</p>}
-
-        {selected ? (
-          <ShopDetail shop={selected} onBack={() => setSelected(null)} />
+        {DEV_TOOLS && view === 'data' ? (
+          <DevData />
         ) : (
-          <>
-            <h2>ร้านทั้งหมด {shops ? `(${shops.length})` : ''}</h2>
-            {!shops ? (
-              <p className="muted">กำลังโหลด…</p>
-            ) : shops.length === 0 ? (
-              <div className="empty">
-                <Store size={32} aria-hidden="true" className="empty__icon" />
-                <p className="muted">ยังไม่มีร้านในระบบ</p>
-              </div>
-            ) : (
-              <table className="tbl">
-                <thead>
-                  <tr>
-                    <th>ชื่อร้าน</th>
-                    <th>รหัสร้าน</th>
-                    <th>แผน</th>
-                    <th>เบอร์ติดต่อ</th>
-                    <th>ผังโต๊ะ</th>
-                    <th>สมัครเมื่อ</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shops.map((s) => (
-                    <tr key={s.id} className="tbl__row" onClick={() => setSelected(s)}>
-                      <td>{s.name}</td>
-                      <td className="mono">{s.code}</td>
-                      <td>{planLabel(s.plan, s.plan_expires_at)}</td>
-                      <td>{s.contact_phone || '—'}</td>
-                      <td>{s.tables_enabled ? 'เปิด' : 'ปิด'}</td>
-                      <td className="mono">{s.created.slice(0, 10)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </>
+          <ShopsView
+            shops={shops}
+            error={error}
+            selected={selected}
+            onSelect={setSelected}
+            onBack={() => setSelected(null)}
+          />
         )}
       </main>
     </div>
+  );
+}
+
+function ShopsView({
+  shops,
+  error,
+  selected,
+  onSelect,
+  onBack,
+}: {
+  shops: ShopRow[] | null;
+  error: string | null;
+  selected: ShopRow | null;
+  onSelect: (shop: ShopRow) => void;
+  onBack: () => void;
+}) {
+  return (
+    <>
+      {error && <p className="alert">{error}</p>}
+
+      {selected ? (
+        <ShopDetail shop={selected} onBack={onBack} />
+      ) : (
+        <>
+          <h2>ร้านทั้งหมด {shops ? `(${shops.length})` : ''}</h2>
+          {!shops ? (
+            <p className="muted">กำลังโหลด…</p>
+          ) : shops.length === 0 ? (
+            <div className="empty">
+              <Store size={32} aria-hidden="true" className="empty__icon" />
+              <p className="muted">ยังไม่มีร้านในระบบ</p>
+            </div>
+          ) : (
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th>ชื่อร้าน</th>
+                  <th>รหัสร้าน</th>
+                  <th>แผน</th>
+                  <th>เบอร์ติดต่อ</th>
+                  <th>ผังโต๊ะ</th>
+                  <th>สมัครเมื่อ</th>
+                </tr>
+              </thead>
+              <tbody>
+                {shops.map((s) => (
+                  <tr key={s.id} className="tbl__row" onClick={() => onSelect(s)}>
+                    <td>{s.name}</td>
+                    <td className="mono">{s.code}</td>
+                    <td>
+                      <span className={`badge badge--${s.plan || 'trial'}`}>
+                        {planLabel(s.plan, s.plan_expires_at)}
+                      </span>
+                    </td>
+                    <td>{s.contact_phone || '—'}</td>
+                    <td>
+                      <span className={s.tables_enabled ? 'badge badge--ok' : 'badge badge--off'}>
+                        {s.tables_enabled ? 'เปิด' : 'ปิด'}
+                      </span>
+                    </td>
+                    <td className="mono">{s.created.slice(0, 10)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </>
+      )}
+    </>
   );
 }
 

@@ -65,6 +65,7 @@ async function wipeShop(token, code) {
 const MENU = [
   {
     category: 'ข้าว',
+    kind: 'food',
     items: [
       ['ข้าวผัดกุ้ง', 120],
       ['ข้าวผัดหมู', 60],
@@ -75,6 +76,7 @@ const MENU = [
   },
   {
     category: 'เส้น',
+    kind: 'food',
     items: [
       ['ผัดไทยกุ้งสด', 90],
       ['ก๋วยเตี๋ยวหมูน้ำตก', 55],
@@ -83,6 +85,7 @@ const MENU = [
   },
   {
     category: 'เครื่องดื่ม',
+    kind: 'drink',
     items: [
       ['น้ำเปล่า', 10],
       ['ชาเย็น', 30],
@@ -146,7 +149,7 @@ async function seedShop(token, { code, name, promptpayId, tablesEnabled, deviceI
     const cat = await api('/api/collections/categories/records', {
       method: 'POST',
       token,
-      body: { shop: shop.id, name: group.category, sort_order: ci, active: true },
+      body: { shop: shop.id, name: group.category, kind: group.kind, sort_order: ci, active: true },
     });
     for (const [mi, [itemName, priceBaht]] of group.items.entries()) {
       await api('/api/collections/menu_items/records', {

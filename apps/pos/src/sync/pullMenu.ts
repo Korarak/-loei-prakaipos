@@ -1,4 +1,5 @@
-import type { Category, MenuItem, ModifierGroup, RecipeLine } from '@prakaipos/shared';
+import type { Category, MenuItem, MenuKind, ModifierGroup, RecipeLine } from '@prakaipos/shared';
+import { normalizeMenuKind } from '@prakaipos/shared';
 import { db, getSetting, setSetting } from '../db/db.js';
 import { pb } from './pb.js';
 
@@ -30,6 +31,7 @@ interface CategoryRecord {
   id: string;
   shop: string;
   name: string;
+  kind: MenuKind | '';
   sort_order: number;
   active: boolean;
   updated: string;
@@ -64,6 +66,7 @@ function toCategory(r: CategoryRecord): Category {
     id: r.id,
     shopId: r.shop,
     name: r.name,
+    kind: normalizeMenuKind(r.kind),
     sortOrder: r.sort_order,
     active: r.active,
     updatedAt: r.updated,
@@ -206,7 +209,10 @@ export async function readLocalMenu(shopId: string): Promise<{
   }));
 
   return {
-    categories: categories.sort((a, b) => a.sortOrder - b.sortOrder),
+    // เครื่องที่แคชหมวดไว้ตั้งแต่ก่อนมีฟิลด์ kind จะได้ undefined จนกว่าจะซิงก์ใหม่
+    categories: categories
+      .map((c) => ({ ...c, kind: normalizeMenuKind(c.kind) }))
+      .sort((a, b) => a.sortOrder - b.sortOrder),
     items: items.sort((a, b) => a.sortOrder - b.sortOrder),
   };
 }

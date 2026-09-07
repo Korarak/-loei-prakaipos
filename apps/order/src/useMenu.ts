@@ -1,4 +1,5 @@
-import type { ModifierGroup, Satang } from '@prakaipos/shared';
+import type { MenuKind, ModifierGroup, Satang } from '@prakaipos/shared';
+import { compareMenuKind, normalizeMenuKind } from '@prakaipos/shared';
 import { useEffect, useState } from 'react';
 import { pb } from './pb.js';
 
@@ -15,6 +16,7 @@ export interface PublicMenuItem {
 export interface PublicCategory {
   id: string;
   name: string;
+  kind: MenuKind;
   items: PublicMenuItem[];
 }
 
@@ -27,6 +29,7 @@ export interface MenuState {
 interface CategoryRecord {
   id: string;
   name: string;
+  kind: MenuKind | '';
 }
 
 interface MenuItemRecord {
@@ -83,6 +86,7 @@ export function useMenu(shopId: string): MenuState {
           .map((c) => ({
             id: c.id,
             name: c.name,
+            kind: normalizeMenuKind(c.kind),
             items: items
               .filter((i) => i.category === c.id)
               .map((i) => ({
@@ -96,7 +100,10 @@ export function useMenu(shopId: string): MenuState {
               })),
           }))
           // หมวดที่ไม่มีเมนูเลยไม่ต้องแสดง ทำให้ลูกค้าเลื่อนหาน้อยลง
-          .filter((c) => c.items.length > 0);
+          .filter((c) => c.items.length > 0)
+          // อาหารขึ้นก่อนเครื่องดื่มเสมอ — คนสั่งข้าวก่อนแล้วค่อยเลือกน้ำ
+          // เรียงแบบเสถียร ลำดับ sort_order เดิมภายในแต่ละกลุ่มจึงไม่เพี้ยน
+          .sort((a, b) => compareMenuKind(a.kind, b.kind));
 
         setState({ loading: false, categories, error: null });
       } catch {

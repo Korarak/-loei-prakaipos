@@ -14,6 +14,7 @@ body {
   color: var(--ink);
   font-family: var(--thai);
   font-size: 16px;
+  line-height: 1.65;
 }
 
 .center {
@@ -22,6 +23,9 @@ body {
   align-items: center;
   justify-content: center;
   padding: 24px;
+  /* จุดเดียวกับหน้าล็อกอินของ POS/หน้าลูกค้า ให้แอปแอดมินยังรู้สึกเป็นแบรนด์เดียวกัน
+     แม้จะเป็นเครื่องมือทีมงานล้วนๆ ไม่ใช่หน้าจอที่ร้าน/ลูกค้าเห็น */
+  background: radial-gradient(900px 420px at 50% -120px, var(--accent-glow), transparent 70%), var(--bg);
 }
 
 .muted {
@@ -29,7 +33,7 @@ body {
 }
 
 .alert {
-  color: var(--accent);
+  color: var(--accent-strong);
 }
 
 .mono {
@@ -44,7 +48,7 @@ body {
   padding: 28px;
   width: 100%;
   max-width: 360px;
-  box-shadow: var(--shadow-2);
+  box-shadow: var(--shadow-3);
 }
 
 .field {
@@ -106,7 +110,7 @@ body {
   gap: 6px;
   background: none;
   border: none;
-  color: var(--accent);
+  color: var(--accent-strong);
   cursor: pointer;
   padding: 0;
 }
@@ -125,8 +129,8 @@ body {
   align-items: center;
   gap: 12px;
   padding: 14px 24px;
-  /* เนวี่เข้มแบบแถบหัวของ Amazon — คงที่ไม่ตามธีมมืด/สว่างของเนื้อหา */
-  background: var(--header-bg);
+  /* เอสเพรสโซอบอุ่น — คงที่ไม่ตามธีมมืด/สว่างของเนื้อหา (สีแบรนด์) */
+  background: var(--header-gradient);
   border-bottom: 1px solid var(--header-line);
   box-shadow: var(--shadow-1);
 }
@@ -136,7 +140,7 @@ body {
 }
 
 .bar h1 {
-  font-size: 18px;
+  font-size: 20px;
   margin: 0;
   color: var(--header-ink);
 }
@@ -200,6 +204,44 @@ body {
   background: var(--bg);
 }
 
+/* ── ป้ายสถานะในตารางร้าน ── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badge--trial {
+  background: color-mix(in srgb, var(--warn) 14%, transparent);
+  color: var(--warn);
+}
+
+.badge--core {
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent-strong);
+}
+
+.badge--plus {
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+  color: var(--ok);
+}
+
+.badge--ok {
+  background: color-mix(in srgb, var(--ok) 14%, transparent);
+  color: var(--ok);
+}
+
+.badge--off {
+  background: color-mix(in srgb, var(--ink2) 16%, transparent);
+  color: var(--ink2);
+}
+
 .list {
   list-style: none;
   padding: 0;
@@ -210,4 +252,142 @@ body {
   padding: 8px 0;
   border-bottom: 1px solid var(--line);
   font-size: 14px;
+}
+
+/* ── ปุ่มสลับมุมมองบนแถบหัว (โหมด dev) ── */
+
+.seg {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 12px;
+}
+
+.seg__btn {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--header-line);
+  background: transparent;
+  color: color-mix(in srgb, var(--header-ink) 75%, transparent);
+  cursor: pointer;
+}
+
+.seg__btn--on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.btn--danger {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* ── เครื่องมือดู/แก้ทุก collection (โหมด dev) ── */
+
+.devdata__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.devdata__pick {
+  margin: 0;
+  min-width: 260px;
+}
+
+.devdata__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+
+.devdata__toolbar .field {
+  margin: 0;
+  flex: 1 1 220px;
+}
+
+.devdata__scroll {
+  overflow-x: auto;
+}
+
+.devdata__scroll .tbl td {
+  white-space: nowrap;
+  max-width: 340px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.devdata__pager {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.devdata__editor {
+  max-width: none;
+  margin-bottom: 20px;
+}
+
+.devdata__editorhead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.devdata__editorhead h3 {
+  margin: 0 0 4px;
+}
+
+.devdata__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.devdata__bool {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.devdata__req {
+  color: var(--accent-strong);
+  font-style: normal;
+}
+
+.field textarea,
+.devdata__code {
+  font: inherit;
+  font-size: 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink);
+  resize: vertical;
+}
+
+.devdata__code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+.field select[multiple] {
+  min-height: 120px;
+  padding: 6px;
 }

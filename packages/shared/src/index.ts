@@ -57,5 +57,18 @@ export type { OrderNoRange } from './ids.js';
 
 export { modifiersKey, sumModifierDeltas } from './modifiers.js';
 
+export {
+  MENU_KINDS,
+  DEFAULT_MENU_KIND,
+  MENU_KIND_LABEL,
+  MENU_KIND_ORDER,
+  normalizeMenuKind,
+  compareMenuKind,
+} from './menuKind.js';
+export type { MenuKind } from './menuKind.js';
+
+export { MenuKindIcon } from './MenuKindIcon.js';
+export type { MenuKindIconProps } from './MenuKindIcon.js';
+
 export { useMountTransition } from './useMountTransition.js';
 export type { MountTransitionStage } from './useMountTransition.js';

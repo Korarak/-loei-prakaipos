@@ -19,10 +19,12 @@
     "test": "vitest run"
   },
   "peerDependencies": {
+    "lucide-react": "^0.474.0",
     "react": "^19.0.0"
   },
   "devDependencies": {
     "@types/react": "^19.0.8",
+    "lucide-react": "^0.474.0",
     "typescript": "^5.7.3",
     "vitest": "^3.0.5"
   }

@@ -1,5 +1,5 @@
 import type { MenuItem, Order, OrderLine, SelectedModifier } from '@prakaipos/shared';
-import { formatBaht } from '@prakaipos/shared';
+import { formatBaht, MenuKindIcon, normalizeMenuKind } from '@prakaipos/shared';
 import { ShoppingCart } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { StaffProfile } from '../auth/credentials.js';
@@ -107,6 +107,10 @@ export function SellScreen({
 
   // หมวดแรกเป็นค่าตั้งต้น เพื่อให้เปิดมาแล้วเห็นเมนูเลย ไม่ต้องกดก่อนหนึ่งที
   const activeCategory = categoryId ?? menu.categories[0]?.id ?? null;
+  // ใช้เลือกไอคอน placeholder ของเมนูที่ไม่มีรูปในหมวดที่กำลังเปิดอยู่
+  const activeKind = normalizeMenuKind(
+    menu.categories.find((c) => c.id === activeCategory)?.kind,
+  );
 
   const visibleItems = useMemo(
     () => menu.items.filter((i) => i.categoryId === activeCategory && i.active),
@@ -178,6 +182,7 @@ export function SellScreen({
               className={c.id === activeCategory ? 'catbtn catbtn--on' : 'catbtn'}
               onClick={() => setCategoryId(c.id)}
             >
+              <MenuKindIcon kind={c.kind} size={16} />
               {c.name}
             </button>
           ))}
@@ -195,12 +200,20 @@ export function SellScreen({
               onClick={() => addToCart(item)}
               disabled={item.soldOut}
             >
-              {item.imageUrl && (
-                <img className="tile__img" src={item.imageUrl} alt="" loading="lazy" />
-              )}
-              <span className="tile__name">{item.name}</span>
-              <span className="tile__price">{formatBaht(item.price)}</span>
-              {item.soldOut && <span className="tile__badge">ของหมด</span>}
+              <span className="tile__media">
+                {item.imageUrl ? (
+                  <img className="tile__img" src={item.imageUrl} alt="" loading="lazy" />
+                ) : (
+                  <span className="tile__ph">
+                    <MenuKindIcon kind={activeKind} size={28} />
+                  </span>
+                )}
+                {item.soldOut && <span className="tile__badge">ของหมด</span>}
+              </span>
+              <span className="tile__body">
+                <span className="tile__name">{item.name}</span>
+                <span className="tile__price">{formatBaht(item.price)}</span>
+              </span>
             </button>
           ))}
         </div>

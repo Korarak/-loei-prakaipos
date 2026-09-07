@@ -1,4 +1,4 @@
-import { formatBaht, useMountTransition } from '@prakaipos/shared';
+import { formatBaht, MenuKindIcon, useMountTransition } from '@prakaipos/shared';
 import { CircleCheck, ShoppingCart } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
@@ -92,14 +92,16 @@ export function TablePage() {
   // ยืนยันเลขโต๊ะก่อน — สแกนผิดโต๊ะแล้วอาหารไปผิดที่ แก้ยากกว่าถามหนึ่งครั้ง
   if (!confirmed) {
     return (
-      <div className="center confirm">
-        <p className="confirm__shop">{session.session.shopName}</p>
-        <p className="confirm__label">คุณนั่งอยู่ที่โต๊ะ</p>
-        <p className="confirm__table">{session.session.tableNo}</p>
-        <button type="button" className="btn btn--primary" onClick={() => setConfirmed(true)}>
-          ใช่ ถูกต้อง
-        </button>
-        <p className="confirm__hint">ถ้าไม่ใช่โต๊ะนี้ กรุณาสแกน QR ที่โต๊ะของคุณ</p>
+      <div className="center">
+        <div className="confirm">
+          <p className="confirm__shop">{session.session.shopName}</p>
+          <p className="confirm__label">คุณนั่งอยู่ที่โต๊ะ</p>
+          <p className="confirm__table">{session.session.tableNo}</p>
+          <button type="button" className="btn btn--primary" onClick={() => setConfirmed(true)}>
+            ใช่ ถูกต้อง
+          </button>
+          <p className="confirm__hint">ถ้าไม่ใช่โต๊ะนี้ กรุณาสแกน QR ที่โต๊ะของคุณ</p>
+        </div>
       </div>
     );
   }
@@ -166,23 +168,31 @@ export function TablePage() {
 
         {menu.categories.map((cat) => (
           <section key={cat.id} className="cat">
-            <h2 className="cat__name">{cat.name}</h2>
+            <h2 className="cat__name">
+              <MenuKindIcon kind={cat.kind} size={15} />
+              {cat.name}
+            </h2>
             <ul className="items">
               {cat.items.map((item) => (
                 <li key={item.id} className={item.soldOut ? 'item item--out' : 'item'}>
-                  {item.imageUrl && (
-                    <img className="item__img" src={item.imageUrl} alt="" loading="lazy" />
-                  )}
+                  <div className="item__media">
+                    {item.imageUrl ? (
+                      <img className="item__img" src={item.imageUrl} alt="" loading="lazy" />
+                    ) : (
+                      <span className="item__ph">
+                        <MenuKindIcon kind={cat.kind} size={32} />
+                      </span>
+                    )}
+                    {item.soldOut && <span className="item__out">ของหมด</span>}
+                  </div>
                   <div className="item__info">
                     <div className="item__name">{item.name}</div>
                     <div className="item__price">{formatBaht(item.price)}</div>
                   </div>
-                  {item.soldOut ? (
-                    <span className="item__out">ของหมด</span>
-                  ) : (
+                  {!item.soldOut && (
                     <button
                       type="button"
-                      className="btn"
+                      className="btn item__add"
                       onClick={() => {
                         // เมนูที่มีตัวเลือกต้องเลือกก่อนเสมอ แม้ทุกกลุ่มจะไม่บังคับ
                         if (item.modifierGroups.length > 0) {

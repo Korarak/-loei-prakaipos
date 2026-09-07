@@ -76,7 +76,7 @@ afterEach(() => {
 describe('การแก้เมนูต้องมีเน็ต', () => {
   it('เพิ่มหมวดตอนไม่มีเน็ตแล้วแจ้งให้ชัด', async () => {
     setOnline(false);
-    await expect(createCategory(SHOP, 'ข้าว', 0)).rejects.toBeInstanceOf(
+    await expect(createCategory(SHOP, 'ข้าว', 'food', 0)).rejects.toBeInstanceOf(
       NeedsInternetError,
     );
   });
@@ -92,7 +92,7 @@ describe('การแก้เมนูต้องมีเน็ต', () => {
     setOnline(false);
     const calls = mockPb();
 
-    await expect(createCategory(SHOP, 'ข้าว', 0)).rejects.toThrow();
+    await expect(createCategory(SHOP, 'ข้าว', 'food', 0)).rejects.toThrow();
     expect(calls).toHaveLength(0);
   });
 });
