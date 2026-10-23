@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, UserPlus } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { knownStaff } from '../auth/credentials.js';
 import type { DeviceInfo } from '../auth/device.js';
@@ -21,6 +21,10 @@ interface LockScreenProps {
 export function LockScreen({ device, onUnlock }: LockScreenProps) {
   const [staff, setStaff] = useState<StaffCredential[] | null>(null);
   const [selected, setSelected] = useState<StaffCredential | null>(null);
+  // เปิดฟอร์มพิมพ์ชื่อผู้ใช้เอง แม้เครื่องนี้จะเคยมีคนอื่นเข้าระบบมาก่อนแล้วก็ตาม
+  // (เดิมฟอร์มนี้ขึ้นเฉพาะตอน staff.length === 0 — พอเจ้าของร้านตั้งเครื่องเสร็จ
+  // พนักงานคนอื่นจะไม่มีทางเข้าระบบครั้งแรกบนเครื่องนี้ได้อีกเลย)
+  const [addingNew, setAddingNew] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -70,16 +74,35 @@ export function LockScreen({ device, onUnlock }: LockScreenProps) {
     return <div className="screen screen--center muted">กำลังโหลด…</div>;
   }
 
-  // ยังไม่มีใครเคยเข้าระบบบนเครื่องนี้เลย — เกิดหลังตั้งค่าเครื่องใหม่ๆ
-  if (staff.length === 0) {
+  // ยังไม่มีใครเคยเข้าระบบบนเครื่องนี้เลย (ตั้งค่าเครื่องใหม่ๆ) หรือกดขอเข้าระบบ
+  // ด้วยชื่ออื่นเอง (พนักงานที่ยังไม่เคยใช้เครื่องนี้มาก่อน)
+  if (staff.length === 0 || addingNew) {
     return (
       <div className="screen screen--center">
         <div className="panel">
+          {staff.length > 0 && (
+            <button
+              type="button"
+              className="lock__back"
+              onClick={() => {
+                setAddingNew(false);
+                setError(null);
+              }}
+            >
+              <ArrowLeft size={16} aria-hidden="true" /> เปลี่ยนคน
+            </button>
+          )}
           <h1>{device.shopName}</h1>
           <p className="muted">
-            ยังไม่มีพนักงานคนใดเข้าระบบบนเครื่องนี้
-            <br />
-            พนักงานต้องเข้าระบบครั้งแรกตอนมีอินเทอร์เน็ต หลังจากนั้นเข้าได้ตลอดแม้เน็ตหลุด
+            {staff.length === 0 ? (
+              <>
+                ยังไม่มีพนักงานคนใดเข้าระบบบนเครื่องนี้
+                <br />
+                พนักงานต้องเข้าระบบครั้งแรกตอนมีอินเทอร์เน็ต หลังจากนั้นเข้าได้ตลอดแม้เน็ตหลุด
+              </>
+            ) : (
+              'เข้าระบบครั้งแรกบนเครื่องนี้ด้วยชื่อผู้ใช้ — ต้องมีอินเทอร์เน็ต หลังจากนั้นชื่อจะขึ้นให้เลือกทุกครั้ง'
+            )}
           </p>
           <FirstTimeLogin device={device} onUnlock={onUnlock} />
         </div>
@@ -110,6 +133,9 @@ export function LockScreen({ device, onUnlock }: LockScreenProps) {
               </button>
             ))}
           </div>
+          <button type="button" className="lock__addnew" onClick={() => setAddingNew(true)}>
+            <UserPlus size={16} aria-hidden="true" /> ยังไม่เคยเข้าเครื่องนี้? เข้าระบบด้วยชื่ออื่น
+          </button>
         </div>
       </div>
     );

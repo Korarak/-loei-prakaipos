@@ -3,6 +3,7 @@
  */
 
 @import '../../../packages/shared/src/tokens.css';
+@import '../../../packages/shared/src/primitives.css';
 
 * {
   box-sizing: border-box;
@@ -37,70 +38,32 @@ body {
 }
 
 .mono {
-  font-family: 'SFMono-Regular', Consolas, monospace;
+  font-family: var(--mono);
   font-size: 0.9em;
 }
 
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  padding: 28px;
+  border-radius: var(--r-xl);
+  padding: var(--sp-7);
   width: 100%;
   max-width: 360px;
   box-shadow: var(--shadow-3);
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin: 14px 0;
-  font-size: 14px;
-  color: var(--ink2);
-}
-
+/* .field base / .btn / .btn--primary / .btn--block / .btn:disabled มาจาก
+   packages/shared/src/primitives.css แล้ว เหลือแค่สไตล์ input/select เฉพาะแอปนี้ */
 .field input,
 .field select {
   font: inherit;
-  font-size: 16px;
-  min-height: 44px;
+  font-size: var(--fs-md);
+  min-height: var(--touch);
   padding: 0 12px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: var(--bg);
   color: var(--ink);
-}
-
-.btn {
-  font: inherit;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 0 20px;
-  border-radius: var(--r-md);
-  border: 1px solid var(--line);
-  background: var(--panel);
-  color: var(--ink);
-  cursor: pointer;
-}
-
-.btn--primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
-}
-
-.btn--block {
-  width: 100%;
-  margin-top: 8px;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: default;
 }
 
 .linkbtn {
@@ -113,6 +76,14 @@ body {
   color: var(--accent-strong);
   cursor: pointer;
   padding: 0;
+}
+
+.linkbtn:hover {
+  text-decoration: underline;
+}
+
+.linkbtn--back:hover {
+  color: var(--accent-strong);
 }
 
 .linkbtn--back {
@@ -132,7 +103,7 @@ body {
   /* เอสเพรสโซอบอุ่น — คงที่ไม่ตามธีมมืด/สว่างของเนื้อหา (สีแบรนด์) */
   background: var(--header-gradient);
   border-bottom: 1px solid var(--header-line);
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-1), inset 0 -2px 0 color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 .bar__icon {
@@ -150,7 +121,7 @@ body {
 }
 
 .main {
-  padding: 24px;
+  padding: var(--sp-6);
   max-width: 900px;
   margin: 0 auto;
   animation: fade-in var(--dur-base) var(--ease-out);
@@ -166,7 +137,11 @@ body {
 }
 
 .empty__icon {
-  opacity: 0.5;
+  box-sizing: content-box;
+  padding: 14px;
+  border-radius: var(--r-xl);
+  color: var(--accent-strong);
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
 }
 
 .tbl {
@@ -176,7 +151,7 @@ body {
   border: 1px solid var(--line);
   border-radius: var(--r-md);
   overflow: hidden;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-card);
 }
 
 .tbl th,
@@ -201,22 +176,12 @@ body {
 }
 
 .tbl__row:hover {
-  background: var(--bg);
+  background: color-mix(in srgb, var(--accent) 6%, var(--bg));
 }
 
 /* ── ป้ายสถานะในตารางร้าน ── */
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11.5px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
+/* .badge base + --ok/--off มาจาก primitives.css แล้ว เหลือแค่ variant เฉพาะ admin */
 .badge--trial {
   background: color-mix(in srgb, var(--warn) 14%, transparent);
   color: var(--warn);
@@ -230,16 +195,6 @@ body {
 .badge--plus {
   background: color-mix(in srgb, var(--ok) 14%, transparent);
   color: var(--ok);
-}
-
-.badge--ok {
-  background: color-mix(in srgb, var(--ok) 14%, transparent);
-  color: var(--ok);
-}
-
-.badge--off {
-  background: color-mix(in srgb, var(--ink2) 16%, transparent);
-  color: var(--ink2);
 }
 
 .list {
@@ -278,17 +233,21 @@ body {
   cursor: pointer;
 }
 
-.seg__btn--on {
-  background: var(--accent);
+.seg__btn:hover {
   border-color: var(--accent);
-  color: var(--accent-ink);
+  color: var(--header-ink);
 }
 
-.btn--danger {
-  background: var(--accent);
+.seg__btn--on,
+.seg__btn--on:hover {
+  background: var(--accent-gradient);
   border-color: var(--accent);
   color: var(--accent-ink);
+  font-weight: var(--fw-bold);
+  box-shadow: 0 3px 10px -2px color-mix(in srgb, var(--accent) 65%, transparent);
 }
+
+/* .btn--danger มาจาก primitives.css แล้ว */
 
 /* ── เครื่องมือดู/แก้ทุก collection (โหมด dev) ── */
 
@@ -373,18 +332,18 @@ body {
 .field textarea,
 .devdata__code {
   font: inherit;
-  font-size: 14px;
+  font-size: var(--fs-sm);
   padding: 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   background: var(--bg);
   color: var(--ink);
   resize: vertical;
 }
 
 .devdata__code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 13px;
+  font-family: var(--mono);
+  font-size: var(--fs-xs);
 }
 
 .field select[multiple] {

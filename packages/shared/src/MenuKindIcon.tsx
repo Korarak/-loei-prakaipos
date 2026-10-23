@@ -16,5 +16,5 @@ export interface MenuKindIconProps {
 
 export function MenuKindIcon({ kind, size = 16, className }: MenuKindIconProps) {
   const Icon = kind === 'drink' ? CupSoda : UtensilsCrossed;
-  return <Icon size={size} className={className} aria-hidden="true" />;
+  return <Icon size={size} className={className} aria-hidden="true" data-kind={kind} />;
 }

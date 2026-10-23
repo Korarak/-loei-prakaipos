@@ -1,5 +1,5 @@
 import { formatBaht, MenuKindIcon, useMountTransition } from '@prakaipos/shared';
-import { CircleCheck, ShoppingCart } from 'lucide-react';
+import { CircleCheck, Plus, ShoppingCart, UtensilsCrossed } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -64,7 +64,12 @@ export function TablePage() {
   const cartbarLines = count > 0 ? lines : lastLines;
 
   if (session.loading) {
-    return <div className="center">กำลังตรวจสอบลิงก์…</div>;
+    return (
+      <div className="center">
+        <span className="spinner" aria-hidden="true" />
+        <p className="muted">กำลังตรวจสอบลิงก์…</p>
+      </div>
+    );
   }
 
   // ลิงก์ไม่ถูกต้อง — จบตรงนี้เลย ไม่แสดงเมนูหรือข้อมูลร้านใดๆ ต่อ
@@ -78,7 +83,19 @@ export function TablePage() {
   }
 
   if (menu.loading) {
-    return <div className="center">กำลังโหลดเมนู…</div>;
+    return (
+      <div className="center">
+        <div className="menu-skeleton">
+          {[0, 1, 2, 3].map((i) => (
+            <div className="menu-skeleton__card" key={i}>
+              <div className="menu-skeleton__media" />
+              <div className="menu-skeleton__line" />
+              <div className="menu-skeleton__line menu-skeleton__line--short" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
   }
 
   if (menu.error) {
@@ -166,6 +183,13 @@ export function TablePage() {
           </div>
         )}
 
+        {menu.categories.length === 0 && (
+          <div className="menu-empty">
+            <UtensilsCrossed size={32} aria-hidden="true" />
+            <p>ร้านยังไม่ได้เพิ่มเมนู</p>
+          </div>
+        )}
+
         {menu.categories.map((cat) => (
           <section key={cat.id} className="cat">
             <h2 className="cat__name">
@@ -212,6 +236,7 @@ export function TablePage() {
                         );
                       }}
                     >
+                      <Plus size={16} aria-hidden="true" />
                       เพิ่ม
                     </button>
                   )}

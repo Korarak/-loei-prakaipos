@@ -11,11 +11,11 @@ import type { ComponentType } from 'react';
 
 export type BottomNavScreen = 'sell' | 'tables' | 'dashboard' | 'menu';
 
-const ITEMS: { screen: BottomNavScreen; label: string; icon: ComponentType<{ size?: number }> }[] = [
-  { screen: 'sell', label: 'ขาย', icon: Receipt },
-  { screen: 'tables', label: 'โต๊ะ', icon: Table2 },
-  { screen: 'dashboard', label: 'แดชบอร์ด', icon: LayoutDashboard },
-  { screen: 'menu', label: 'เมนู', icon: UtensilsCrossed },
+const ITEMS: { screen: BottomNavScreen; label: string; hue: string; icon: ComponentType<{ size?: number }> }[] = [
+  { screen: 'sell', hue: 'accent', label: 'ขาย', icon: Receipt },
+  { screen: 'tables', hue: 'violet', label: 'โต๊ะ', icon: Table2 },
+  { screen: 'dashboard', hue: 'green', label: 'แดชบอร์ด', icon: LayoutDashboard },
+  { screen: 'menu', hue: 'amber', label: 'เมนู', icon: UtensilsCrossed },
 ];
 
 interface BottomNavProps {
@@ -29,11 +29,12 @@ export function BottomNav({ active, tablesEnabled, onNavigate }: BottomNavProps)
 
   return (
     <nav className="bottomnav">
-      {items.map(({ screen, label, icon: Icon }) => (
+      {items.map(({ screen, label, hue, icon: Icon }) => (
         <button
           key={screen}
           type="button"
           className={screen === active ? 'bottomnav__item bottomnav__item--on' : 'bottomnav__item'}
+          data-hue={hue}
           onClick={() => onNavigate(screen)}
           aria-current={screen === active ? 'page' : undefined}
         >

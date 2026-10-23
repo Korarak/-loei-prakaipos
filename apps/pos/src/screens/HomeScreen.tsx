@@ -57,7 +57,7 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
           style={delay()}
           onClick={() => onNavigate('sell')}
         >
-          <span className="home__icon" aria-hidden="true">
+          <span className="icon-tile icon-tile--primary home__icon" aria-hidden="true">
             <Receipt size={22} />
           </span>
           <span className="home__name">หน้าขาย</span>
@@ -70,7 +70,7 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
           style={delay()}
           onClick={() => onNavigate('dashboard')}
         >
-          <span className="home__icon" aria-hidden="true">
+          <span className="icon-tile home__icon" data-hue="green" aria-hidden="true">
             <LayoutDashboard size={22} />
           </span>
           <span className="home__name">แดชบอร์ด</span>
@@ -83,7 +83,7 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
           style={delay()}
           onClick={() => onNavigate('orders')}
         >
-          <span className="home__icon" aria-hidden="true">
+          <span className="icon-tile home__icon" data-hue="blue" aria-hidden="true">
             <History size={22} />
           </span>
           <span className="home__name">บิลย้อนหลัง</span>
@@ -97,8 +97,8 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
             style={delay()}
             onClick={() => onNavigate('tables')}
           >
-            <span className="home__icon" aria-hidden="true">
-              <Table2 size={22} />
+            <span className="icon-tile home__icon" data-hue="violet" aria-hidden="true">
+            <Table2 size={22} />
             </span>
             <span className="home__name">ผังโต๊ะ</span>
             <span className="home__sub">ดูโต๊ะว่าง เปิดบิลตามโต๊ะ</span>
@@ -111,7 +111,7 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
           style={delay()}
           onClick={() => onNavigate('menu')}
         >
-          <span className="home__icon" aria-hidden="true">
+          <span className="icon-tile home__icon" data-hue="amber" aria-hidden="true">
             <UtensilsCrossed size={22} />
           </span>
           <span className="home__name">จัดการเมนู</span>
@@ -125,8 +125,8 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
             style={delay()}
             onClick={() => onNavigate('staff')}
           >
-            <span className="home__icon" aria-hidden="true">
-              <Users size={22} />
+            <span className="icon-tile home__icon" data-hue="teal" aria-hidden="true">
+            <Users size={22} />
             </span>
             <span className="home__name">จัดการพนักงาน</span>
             <span className="home__sub">เพิ่มคน ตั้ง PIN ใหม่ ปิดใช้งาน</span>
@@ -140,8 +140,8 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
             style={delay()}
             onClick={() => onNavigate('stock')}
           >
-            <span className="home__icon" aria-hidden="true">
-              <Package size={22} />
+            <span className="icon-tile home__icon" data-hue="pink" aria-hidden="true">
+            <Package size={22} />
             </span>
             <span className="home__name">วัตถุดิบและสต๊อก</span>
             <span className="home__sub">รับเข้า ตัดออก นับสต๊อก คิดต้นทุน</span>
@@ -154,7 +154,7 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
           style={delay()}
           onClick={() => onNavigate('printer')}
         >
-          <span className="home__icon" aria-hidden="true">
+          <span className="icon-tile home__icon" data-hue="slate" aria-hidden="true">
             <Printer size={22} />
           </span>
           <span className="home__name">ตั้งค่าเครื่องพิมพ์</span>

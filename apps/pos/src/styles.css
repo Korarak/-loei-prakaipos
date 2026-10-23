@@ -10,6 +10,7 @@
  */
 
 @import '../../../packages/shared/src/tokens.css';
+@import '../../../packages/shared/src/primitives.css';
 
 * {
   box-sizing: border-box;
@@ -51,7 +52,8 @@ body {
   /* เอสเพรสโซอบอุ่น — คงที่ไม่ตามธีมมืด/สว่างของเนื้อหา (สีแบรนด์) */
   background: var(--header-gradient);
   border-bottom: 1px solid var(--header-line);
-  box-shadow: var(--shadow-1);
+  /* เส้นเรืองแสงสีแอ็กเซนต์บางๆ ใต้แถบหัว ให้แบรนด์เด่นขึ้นโดยไม่รบกวนการอ่าน */
+  box-shadow: var(--shadow-1), inset 0 -2px 0 color-mix(in srgb, var(--accent) 55%, transparent);
   position: relative;
   z-index: 5;
 }
@@ -92,14 +94,14 @@ body {
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 20px 22px;
+  border-radius: var(--r-lg);
+  padding: var(--sp-5) var(--sp-6);
   max-width: 640px;
   box-shadow: var(--shadow-2);
 }
 
 .panel h1 {
-  font-size: 24px;
+  font-size: var(--fs-xl);
   margin: 0 0 6px;
 }
 
@@ -221,15 +223,6 @@ body {
   width: 100%;
 }
 
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  margin: 16px 0;
-  font-size: 14px;
-  color: var(--ink2);
-}
-
 .field input {
   font: inherit;
   font-size: 17px;
@@ -278,36 +271,8 @@ body {
   color: var(--accent-strong);
 }
 
-.btn {
-  font: inherit;
-  font-weight: 600;
-  min-height: var(--touch);
-  padding: 0 22px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  color: var(--ink);
-  cursor: pointer;
-  box-shadow: var(--shadow-1);
-}
-
-.btn--primary {
-  /* ปุ่มมะเขือเทศเรียบ ไม่ไล่เฉด ตัวอักษรน้ำตาลไหม้เข้มทับ (--accent-ink) */
-  background: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 82%, #000 18%);
-  color: var(--accent-ink);
-  box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--accent) 55%, transparent);
-}
-
-.btn--block {
-  width: 100%;
-  margin-top: 8px;
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
+/* .btn / .btn--primary / .btn--block / .btn:disabled มาจาก
+   packages/shared/src/primitives.css แล้ว */
 
 /* ── หน้าล็อก ── */
 
@@ -342,20 +307,39 @@ body {
   margin-top: 16px;
 }
 
+.lock__addnew {
+  font: inherit;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: var(--touch);
+  padding: 0 4px;
+  margin-top: 18px;
+  border: none;
+  background: none;
+  color: var(--ink2);
+  cursor: pointer;
+}
+
+.lock__addnew:hover {
+  color: var(--accent-strong);
+}
+
 .person {
   font: inherit;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: var(--sp-2);
   /* ปุ่มใหญ่พอให้กดถูกตอนรีบ ตามหลักในเอกสารออกแบบหัวข้อ 12 */
-  padding: 20px 12px;
+  padding: var(--sp-5) var(--sp-3);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   background: var(--panel);
   color: var(--ink);
   cursor: pointer;
-  box-shadow: var(--shadow-2);
+  box-shadow: var(--shadow-card);
 }
 
 .person:active {
@@ -446,9 +430,14 @@ body {
   box-shadow: var(--shadow-1);
 }
 
+.pinpad__key:hover {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
 .pinpad__key:active {
-  background: var(--chip);
+  background: var(--accent);
   border-color: var(--accent);
+  color: var(--accent-ink);
 }
 
 .pinpad__key--alt {
@@ -526,19 +515,21 @@ body {
 /* ไอคอนอาหาร/เครื่องดื่มบนปุ่มหมวด — จางลงเล็กน้อยเมื่อยังไม่ถูกเลือก
    เพื่อให้ตัวหนังสือชื่อหมวดยังเป็นตัวนำสายตา */
 .catbtn svg {
-  color: var(--ink2);
   flex-shrink: 0;
 }
 
-.catbtn--on svg {
-  color: currentColor;
+.catbtn:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel));
 }
 
-.catbtn--on {
-  background: var(--accent);
+.catbtn--on,
+.catbtn--on:hover {
+  background: var(--accent-gradient);
   border-color: var(--accent);
   color: var(--accent-ink);
-  box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 3px 10px -2px color-mix(in srgb, var(--accent) 65%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
 }
 
 .sell__grid {
@@ -559,12 +550,20 @@ body {
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
   background: var(--panel);
   color: var(--ink);
   cursor: pointer;
   text-align: left;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-card);
+  /* เฉพาะเงา ไม่มี transform/translate — เมาส์บนแท็บเล็ตยังได้ฟีดแบ็กเบาๆ
+     ไม่กระทบกฎห้ามขยับตำแหน่งปุ่มที่กดซ้ำๆ */
+  transition: box-shadow var(--dur-fast), border-color var(--dur-fast);
+}
+
+.tile:hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  box-shadow: var(--shadow-3);
 }
 
 .tile:active {
@@ -769,9 +768,22 @@ body {
   flex-shrink: 0;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: var(--bg);
-  color: var(--ink);
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  color: var(--accent-strong);
+  font-weight: var(--fw-bold);
   cursor: pointer;
+  transition: background-color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.qtybtn:hover {
+  background: color-mix(in srgb, var(--accent) 24%, var(--panel));
+  border-color: var(--accent);
+}
+
+.qtybtn:active {
+  background: var(--accent);
+  color: var(--accent-ink);
 }
 
 .cline__qty {
@@ -876,13 +888,16 @@ body {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--line);
+  padding: 14px 16px;
+  margin-bottom: 4px;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   font-variant-numeric: tabular-nums;
 }
 
 .pay__due b {
-  font-size: 26px;
+  font-size: var(--fs-2xl);
+  color: var(--accent-strong);
 }
 
 .pay__methods {
@@ -986,15 +1001,15 @@ body {
 
 .ordercard {
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   padding: 12px 14px;
   background: var(--bg);
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-card);
 }
 
 .ordercard--pending {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent), var(--shadow-1);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent), var(--shadow-card);
 }
 
 .ordercard__head {
@@ -1061,13 +1076,32 @@ body {
   transition: background-color var(--dur-fast), color var(--dur-fast);
 }
 
+.bottomnav__item {
+  --h: var(--accent);
+  --h-ink: var(--accent-strong);
+}
+
+.bottomnav__item[data-hue='violet'] { --h: var(--hue-violet); --h-ink: var(--hue-violet-ink); }
+.bottomnav__item[data-hue='green'] { --h: var(--hue-green); --h-ink: var(--hue-green-ink); }
+.bottomnav__item[data-hue='amber'] { --h: var(--hue-amber); --h-ink: var(--hue-amber-ink); }
+
+/* ไอคอนสีประจำแท็บเสมอ (จางลงเมื่อไม่ได้เลือก) — เห็นแล้วรู้ทันทีว่าแท็บไหน ไม่ต้องอ่านป้าย */
+.bottomnav__icon {
+  color: color-mix(in srgb, var(--h-ink) 70%, var(--ink2));
+}
+
+.bottomnav__item:hover .bottomnav__icon {
+  background: color-mix(in srgb, var(--h) 12%, transparent);
+}
+
 .bottomnav__item--on {
-  color: var(--accent-strong);
+  color: var(--h-ink);
 }
 
 .bottomnav__item--on .bottomnav__icon {
-  background: var(--chip);
-  color: var(--accent-strong);
+  background: color-mix(in srgb, var(--h) 24%, var(--panel));
+  color: var(--h-ink);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--h) 35%, transparent);
 }
 
 /* ── หน้าแรก ── */
@@ -1116,26 +1150,26 @@ body {
 }
 
 /* การ์ดหน้าขาย — งานที่พนักงานกดมากที่สุด ให้เด่นกว่าการ์ดอื่นแบบเดียวกับ
-   dash__card:first-child ที่ขีดสีซ้ายบอกรายการเด่น */
+   dash__card:first-child ที่ขีดสีซ้ายบอกรายการเด่น เพิ่มไล่เฉดจางๆ ให้เป็น "การ์ดธง"
+   ของหน้าแรกชัดเจนขึ้นโดยไม่แย่งคอนทราสต์ตัวหนังสือ */
 .home__card--primary {
   border-left: 3px solid var(--accent);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--accent) 6%, var(--panel)), var(--panel) 55%);
 }
 
-.home__card--primary .home__icon {
-  background: var(--accent);
-  color: var(--accent-ink);
+.home__card--primary:hover {
+  border-left-color: var(--accent);
 }
 
 .home__icon {
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  border-radius: var(--r-pill);
-  /* ไล่เฉดบางๆ แทนพื้นสีทึบ ให้ไอคอนดูมีมิติขึ้นโดยไม่แย่งความสนใจจากตัวเนื้อหา */
-  background: linear-gradient(145deg, var(--chip), color-mix(in srgb, var(--accent) 10%, var(--chip)));
-  color: var(--accent-strong);
-  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-lg);
+}
+
+.home__card:hover .home__icon {
+  box-shadow: 0 4px 12px -3px color-mix(in srgb, var(--h) 60%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
 }
 
 .home__name {
@@ -1161,16 +1195,19 @@ body {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 16px 18px;
+  padding: var(--sp-4) var(--sp-5);
   border: 1px solid var(--line);
   border-left: 3px solid var(--accent);
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   background: var(--panel);
-  box-shadow: var(--shadow-2);
+  box-shadow: var(--shadow-card);
 }
 
+/* การ์ดยอดขายวันนี้ — ตัวเลขสำคัญสุดของหน้าแดชบอร์ด ใส่ไล่เฉดจางๆ โทนเขียวให้เด่น
+   เป็น "การ์ดธง" แบบเดียวกับ home__card--primary */
 .dash__card:first-child {
   border-left-color: var(--ok);
+  background: linear-gradient(155deg, color-mix(in srgb, var(--ok) 8%, var(--panel)), var(--panel) 55%);
 }
 
 .dash__label {
@@ -1204,11 +1241,30 @@ body {
   gap: 6px;
   min-height: 88px;
   padding: var(--sp-3);
-  border-radius: var(--r-md);
+  border-radius: var(--r-lg);
   border: 1px solid var(--line);
   background: var(--panel);
   cursor: pointer;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--dur-fast), border-color var(--dur-fast);
+}
+
+.tablecard {
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--line));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--ok) 9%, var(--panel)), var(--panel) 70%);
+}
+
+.tablecard__no {
+  color: var(--ok);
+}
+
+.tablecard--busy .tablecard__no {
+  color: var(--warn);
+}
+
+.tablecard:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  box-shadow: var(--shadow-3);
 }
 
 .tablecard:disabled {
@@ -1218,7 +1274,7 @@ body {
 
 .tablecard--busy {
   border-color: var(--warn);
-  background: color-mix(in srgb, var(--warn) 12%, var(--panel));
+  background: linear-gradient(160deg, color-mix(in srgb, var(--warn) 16%, var(--panel)), var(--panel) 75%);
 }
 
 .tablecard--pending {
@@ -1289,26 +1345,22 @@ body {
   flex-wrap: wrap;
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   padding: 10px 14px;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--dur-fast), border-color var(--dur-fast);
+}
+
+.mrow:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+  box-shadow: var(--shadow-3);
 }
 
 .mrow--out {
   opacity: 0.6;
 }
 
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11.5px;
-  font-weight: 700;
-  padding: 2px 9px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-
+/* .badge base + --ok/--warn/--off มาจาก primitives.css แล้ว เหลือแค่ variant เฉพาะ pos */
 .badge--owner {
   background: color-mix(in srgb, var(--accent) 16%, transparent);
   color: var(--accent-strong);
@@ -1317,21 +1369,6 @@ body {
 .badge--staff {
   background: var(--chip);
   color: var(--ink2);
-}
-
-.badge--off {
-  background: color-mix(in srgb, var(--ink2) 16%, transparent);
-  color: var(--ink2);
-}
-
-.badge--ok {
-  background: color-mix(in srgb, var(--ok) 14%, transparent);
-  color: var(--ok);
-}
-
-.badge--warn {
-  background: color-mix(in srgb, var(--warn) 14%, transparent);
-  color: var(--warn);
 }
 
 .hist__toolbar {
@@ -1390,9 +1427,11 @@ body {
 }
 
 .chipbtn--on {
-  background: var(--accent);
+  background: var(--accent-gradient);
   border-color: var(--accent);
   color: var(--accent-ink);
+  box-shadow: 0 3px 10px -2px color-mix(in srgb, var(--accent) 65%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
 }
 
 /* ── รายการบิลย้อนหลัง ── */
@@ -1404,13 +1443,19 @@ body {
   gap: var(--sp-3);
   width: 100%;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   padding: 12px 14px;
   background: var(--panel);
   color: var(--ink);
   cursor: pointer;
   text-align: left;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--dur-fast), border-color var(--dur-fast);
+}
+
+.orderrow:hover {
+  border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+  box-shadow: var(--shadow-3);
 }
 
 .orderrow:active {
@@ -1495,8 +1540,10 @@ body {
 
 .toggle--on {
   border-color: var(--accent);
-  background: var(--accent);
+  background: var(--accent-gradient);
   color: var(--accent-ink);
+  box-shadow: 0 3px 10px -2px color-mix(in srgb, var(--accent) 65%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
 }
 
 .linkbtn {
@@ -1511,43 +1558,21 @@ body {
   white-space: nowrap;
 }
 
+.linkbtn:hover {
+  color: var(--accent-strong);
+  text-decoration: underline;
+}
+
 .linkbtn--danger {
   color: var(--accent-strong);
 }
 
-.btn--danger {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-ink);
-}
+/* .btn--danger / .chip / .chip--on มาจาก primitives.css แล้ว */
 
 .chips {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-}
-
-.chip {
-  font: inherit;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 40px;
-  padding: 0 16px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: var(--panel);
-  color: var(--ink);
-  cursor: pointer;
-  box-shadow: var(--shadow-1);
-}
-
-.chip--on {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: var(--accent-ink);
-  box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
 /* ── ตัวเลือก/ท็อปปิ้งของเมนู (หน้าจัดการเมนู) ── */
@@ -1595,7 +1620,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: #0006;
+  background: var(--scrim);
   overflow-y: auto;
   animation: sheet-backdrop-in var(--dur-fast) var(--ease-out);
 }
@@ -1603,8 +1628,8 @@ body {
 .sheet__panel {
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 22px 24px;
+  border-radius: var(--r-xl);
+  padding: var(--sp-5) var(--sp-6);
   width: 100%;
   max-width: 460px;
   max-height: 90dvh;

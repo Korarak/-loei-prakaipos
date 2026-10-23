@@ -1,0 +1,228 @@
+/*
+ * ส่วนประกอบ UI พื้นฐานที่ใช้ร่วมกันข้าม pos / order / admin
+ *
+ * เดิมแต่ละแอปนิยาม .btn/.badge/.chip ของตัวเองแยกกัน ค่าเกือบเหมือนกันทุกตัวอักษร
+ * แต่หลุดไม่ตรงกันเล็กน้อย (padding, min-height, เงา) รวมมาไว้ที่เดียวให้แอปไหน
+ * ก็ตาม import ไฟล์นี้ต่อจาก tokens.css แล้วหน้าตาปุ่ม/ป้ายจะตรงกันทั้งระบบ
+ *
+ * แอปที่มี class เฉพาะทางของตัวเอง (เช่น .badge--owner ใน pos, .badge--trial ใน admin)
+ * ให้ประกาศเพิ่มในสไตล์ของแอปนั้นต่อท้ายไฟล์นี้ตามปกติ
+ */
+
+.btn {
+  font: inherit;
+  font-weight: var(--fw-medium);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: var(--touch);
+  padding: 0 22px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  /* เงาตกกระทบ + ไฮไลต์ขอบบนบางๆ ให้ปุ่มรู้สึกนูนขึ้นจากพื้นเล็กน้อย (ไม่ใช่ transform
+     จึงไม่ขยับตำแหน่ง — ปลอดภัยกับกฎห้ามขยับปุ่มที่กดซ้ำๆ ใน pos) */
+  box-shadow: var(--shadow-1), inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
+  transition: box-shadow var(--dur-fast), border-color var(--dur-fast), filter var(--dur-fast);
+}
+
+.btn--primary,
+.btn--danger {
+  /* ไล่เฉดส้มสดจากบนลงล่าง ตัวอักษรน้ำตาลไหม้เข้ม (--accent-ink) ทับแล้วยังคอนทราสต์ผ่าน
+     (ปลายสว่างทำให้คอนทราสต์กับตัวเข้มดีขึ้นด้วยซ้ำ) */
+  background: var(--accent-gradient);
+  border-color: color-mix(in srgb, var(--accent) 80%, #000 20%);
+  color: var(--accent-ink);
+  font-weight: var(--fw-bold);
+  box-shadow: 0 4px 12px -3px color-mix(in srgb, var(--accent) 70%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
+}
+
+/* ปุ่มลบ/อันตราย — ขอบและพื้นเป็นแดงอิฐชัด ไม่กลืนกับปุ่มหลักสีส้ม */
+.btn--danger {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--warn) 88%, #fff 12%), var(--warn));
+  border-color: color-mix(in srgb, var(--warn) 80%, #000 20%);
+  color: var(--warn-ink);
+  box-shadow: 0 4px 12px -3px color-mix(in srgb, var(--warn) 60%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 30%, transparent);
+}
+
+/* ฟีดแบ็กตอนชี้/กด — เปลี่ยนเฉพาะสี/เงา ห้าม transform (ปุ่มที่กดซ้ำต้องไม่ขยับ) */
+.btn:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  box-shadow: var(--shadow-2), inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
+}
+
+.btn--primary:not(:disabled):hover {
+  filter: brightness(1.06) saturate(1.1);
+  border-color: color-mix(in srgb, var(--accent) 80%, #000 20%);
+  box-shadow: 0 6px 16px -3px color-mix(in srgb, var(--accent) 80%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
+}
+
+.btn--danger:not(:disabled):hover {
+  filter: brightness(1.08);
+  border-color: color-mix(in srgb, var(--warn) 80%, #000 20%);
+}
+
+.btn:not(:disabled):active {
+  filter: brightness(0.94);
+  box-shadow: inset 0 2px 4px #00000026;
+}
+
+.btn svg {
+  flex-shrink: 0;
+}
+
+:where(.btn, .chip):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+
+.btn--block {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+  box-shadow: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  padding: 3px 10px;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+
+.badge--ok {
+  background: color-mix(in srgb, var(--ok) 18%, transparent);
+  color: var(--ok);
+}
+
+.badge--warn {
+  background: color-mix(in srgb, var(--warn) 16%, transparent);
+  color: var(--warn);
+}
+
+.badge--info {
+  background: color-mix(in srgb, var(--hue-blue) 16%, transparent);
+  color: var(--hue-blue-ink);
+}
+
+.badge--accent {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent-strong);
+}
+
+.badge--off {
+  background: color-mix(in srgb, var(--ink2) 16%, transparent);
+  color: var(--ink2);
+}
+
+.chip {
+  font: inherit;
+  font-size: var(--fs-sm);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: var(--r-pill);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+  transition: background-color var(--dur-fast), border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+
+.chip:hover {
+  border-color: color-mix(in srgb, var(--accent) 50%, var(--line));
+  background: color-mix(in srgb, var(--accent) 8%, var(--panel));
+}
+
+.chip--on,
+.chip--on:hover {
+  border-color: var(--accent);
+  background: var(--accent-gradient);
+  color: var(--accent-ink);
+  font-weight: var(--fw-bold);
+  box-shadow: 0 3px 10px -2px color-mix(in srgb, var(--accent) 65%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin: var(--sp-4) 0;
+  font-size: var(--fs-sm);
+  color: var(--ink2);
+}
+
+/*
+ * ไอคอนในกรอบสี — ใช้ทั้งการ์ดหน้าแรก, แถบนำทาง, หัวข้อ
+ * ใส่ data-hue="green|blue|violet|amber|teal|pink|slate" ให้ได้สีประจำฟีเจอร์ (ไม่ใส่ = ส้มแบรนด์)
+ * พื้นเป็นไล่เฉดจางของสีนั้น ไอคอนใช้เฉดเข้ม --hue-X-ink จึงอ่านชัดทั้งธีมสว่าง/มืด
+ */
+.icon-tile {
+  --h: var(--accent);
+  --h-ink: var(--accent-strong);
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border-radius: var(--r-md);
+  color: var(--h-ink);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--h) 22%, var(--panel)), color-mix(in srgb, var(--h) 10%, var(--panel)));
+  border: 1px solid color-mix(in srgb, var(--h) 30%, transparent);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 45%, transparent);
+}
+
+.icon-tile[data-hue='green'] { --h: var(--hue-green); --h-ink: var(--hue-green-ink); }
+.icon-tile[data-hue='blue'] { --h: var(--hue-blue); --h-ink: var(--hue-blue-ink); }
+.icon-tile[data-hue='violet'] { --h: var(--hue-violet); --h-ink: var(--hue-violet-ink); }
+.icon-tile[data-hue='amber'] { --h: var(--hue-amber); --h-ink: var(--hue-amber-ink); }
+.icon-tile[data-hue='teal'] { --h: var(--hue-teal); --h-ink: var(--hue-teal-ink); }
+.icon-tile[data-hue='pink'] { --h: var(--hue-pink); --h-ink: var(--hue-pink-ink); }
+.icon-tile[data-hue='slate'] { --h: var(--hue-slate); --h-ink: var(--hue-slate-ink); }
+
+/* แบบทึบ — สีเต็มพื้น ไอคอนขาว ใช้กับรายการเด่น (เช่น การ์ดหน้าขาย) */
+.icon-tile--solid {
+  background: linear-gradient(145deg, color-mix(in srgb, var(--h) 82%, #fff 18%), var(--h));
+  border-color: color-mix(in srgb, var(--h) 75%, #000 25%);
+  color: #fff;
+  box-shadow: 0 4px 10px -3px color-mix(in srgb, var(--h) 70%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent);
+}
+.icon-tile--primary {
+  background: var(--accent-gradient);
+  border-color: color-mix(in srgb, var(--accent) 80%, #000 20%);
+  color: var(--accent-ink);
+}
+
+/* ไอคอนประเภทหมวด (MenuKindIcon) — อาหารเป็นเหลืองอำพัน เครื่องดื่มเป็นฟ้า ให้แยกประเภทได้ในพริบตา
+   :where() ทำให้ความจำเพาะต่ำ สถานะ "เลือกอยู่" (พื้นส้ม) เขียนทับกลับเป็นสีตัวอักษรได้เสมอ */
+:where(svg[data-kind='food']) {
+  color: var(--hue-amber-ink);
+}
+
+:where(svg[data-kind='drink']) {
+  color: var(--hue-blue-ink);
+}
+
+.chip--on svg[data-kind],
+.catbtn--on svg[data-kind] {
+  color: currentColor;
+}
