@@ -379,6 +379,9 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
+  /* จอคอม: ตะกร้าไม่ต้องกางสุดจอ — กลางหน้าและกว้างพอดีอ่าน */
+  width: min(100%, 720px);
+  margin-inline: auto;
   background: var(--panel);
   border-top: 1px solid var(--line);
   border-radius: var(--r-xl) var(--r-xl) 0 0;

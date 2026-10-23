@@ -29,16 +29,92 @@ body {
   font-family: var(--thai);
   font-size: 16px;
   line-height: 1.65;
-  /* กันการเลือกข้อความค้างเวลาแตะปุ่มรัวๆ */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* เว็บบนคอม: ให้คัดลอกข้อความ (เลขบิล, ยอด, ชื่อ) ได้ตามปกติ — กันเลือกค้างเฉพาะตัวควบคุมที่กดรัว */
+button,
+.tile,
+.bottomnav,
+.pinpad {
   -webkit-user-select: none;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  /* กันแตะสองครั้งแล้วหน้าซูมบนมือถือ/แท็บเล็ต โดยไม่ต้องล็อกการซูมทั้งหน้า */
+  touch-action: manipulation;
+}
+
+/* เมาส์/แทร็กแพด: ปุ่มไม่ต้องใหญ่เท่านิ้ว — กระชับลงให้ข้อมูลเห็นได้มากขึ้นบนจอคอม */
+@media (pointer: fine) {
+  :root {
+    --touch: 42px;
+  }
+}
+
+/* แถบเลื่อนบางๆ โทนอุ่น แทนแถบเทาหนาของเบราว์เซอร์เดสก์ท็อป */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--ink2) 45%, transparent) transparent;
 }
 
 .app {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
+}
+
+/* เนื้อหา + แถบนำทาง — มือถือ/แท็บเล็ตแนวตั้ง: แถบอยู่ล่าง */
+.app__body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app__content {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* จอคอม/แท็บเล็ตแนวนอน: ย้ายแถบนำทางเป็นแถบด้านซ้าย — ไม่กินความสูงจอ
+   และเมาส์ไม่ต้องลากไปล่างสุดทุกครั้ง */
+@media (min-width: 1000px) {
+  .app__body {
+    flex-direction: row;
+  }
+
+  .bottomnav {
+    order: -1;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: var(--sp-1);
+    width: 96px;
+    padding: var(--sp-3) var(--sp-2);
+    border-top: none;
+    border-right: 1px solid var(--line);
+    overflow-y: auto;
+  }
+
+  .bottomnav__item {
+    flex: 0 0 auto;
+    min-height: 72px;
+    border-radius: var(--r-md);
+  }
+
+  .bottomnav__item:hover {
+    background: color-mix(in srgb, var(--h) 8%, transparent);
+  }
+
+  .app__main {
+    padding: var(--sp-6) var(--sp-7);
+  }
+
+  .home__grid {
+    max-width: 1100px;
+  }
 }
 
 .app__bar {
@@ -457,7 +533,7 @@ body {
   display: grid;
   /* เมนูซ้าย ตะกร้าขวา — ตะกร้ากว้างคงที่เพื่อให้ยอดเงินอยู่ที่เดิมเสมอ
      พนักงานจะได้กวาดตาไปที่เดิมทุกครั้ง ไม่ต้องมองหา */
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr clamp(340px, 30vw, 460px);
   min-height: 0;
 }
 

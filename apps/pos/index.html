@@ -3,12 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- viewport-fit=cover + user-scalable=no: กันการซูมพลาดตอนพนักงานกดรัว -->
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#131921" />
+    <!-- ระบบเป็นเว็บแอปที่เปิดได้ทั้งคอม/แท็บเล็ต/มือถือ จึงไม่ล็อกการซูม (เข้าถึงได้ตามมาตรฐาน)
+         การกันแตะสองครั้งซูมพลาดทำที่ CSS ด้วย touch-action: manipulation แทน -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#3b2a20" />
     <!-- ให้เปิดเต็มจอเมื่อติดตั้งลงหน้าจอโฮม
          ต้องใส่ทั้งสองตัว: ตัวมาตรฐานสำหรับ Chrome/Android
          และตัวของ Apple ที่ Safari ยังต้องใช้อยู่ -->
