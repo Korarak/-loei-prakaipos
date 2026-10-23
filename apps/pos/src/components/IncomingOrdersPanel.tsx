@@ -1,5 +1,5 @@
 import { formatBaht } from '@prakaipos/shared';
-import { Bell, BellRing } from 'lucide-react';
+import { Banknote, Bell, BellRing, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import type { IncomingOrder, IncomingOrdersState } from '../qr/useIncomingOrders.js';
 
@@ -114,6 +114,7 @@ export function IncomingOrdersButton({
 
             <div className="sheet__actions">
               <button type="button" className="btn" onClick={() => setOpen(false)}>
+                <X size={16} aria-hidden="true" />
                 ปิด
               </button>
             </div>
@@ -173,6 +174,7 @@ function TableGroupCard({
           <span className="muted">มีออร์เดอร์รอยืนยันของโต๊ะนี้ค้างอยู่ — ยืนยันให้ครบก่อน</span>
         ) : (
           <button type="button" className="btn btn--primary" onClick={onCharge}>
+            <Banknote size={18} aria-hidden="true" />
             รับเงิน
           </button>
         )}

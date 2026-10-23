@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import type { MenuItem, ModifierGroup, SelectedModifier } from '@prakaipos/shared';
 import { formatBaht } from '@prakaipos/shared';
 import { useState } from 'react';
@@ -86,6 +87,7 @@ export function ModifierPicker({ item, onCancel, onConfirm }: ModifierPickerProp
 
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel}>
+            <X size={16} aria-hidden="true" />
             ยกเลิก
           </button>
           <button type="button" className="btn btn--primary" onClick={confirm}>

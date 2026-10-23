@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { formatBaht } from '@prakaipos/shared';
 import { useState } from 'react';
 import { splitByGroups, splitEvenly, total, type CartState } from '../sell/cart.js';
@@ -146,6 +147,7 @@ export function SplitBillDialog({ cart, onCancel, onSplitByItem }: SplitBillDial
 
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel}>
+            <X size={16} aria-hidden="true" />
             ยกเลิก
           </button>
           {mode === 'byItem' && (

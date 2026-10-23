@@ -1,3 +1,4 @@
+import { Unplug } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import {
   forgetPrinter,
@@ -64,6 +65,7 @@ export function PrinterScreen() {
             {error && <p className="alert">{error}</p>}
             <div className="sheet__actions" style={{ marginTop: 16 }}>
               <button type="button" className="btn" onClick={() => void handleForget()}>
+                <Unplug size={16} aria-hidden="true" />
                 เลิกจับคู่
               </button>
               <button

@@ -1,4 +1,4 @@
-import { TriangleAlert } from 'lucide-react';
+import { TriangleAlert, X } from 'lucide-react';
 
 /**
  * กล่องยืนยันในแอป
@@ -32,6 +32,7 @@ export function ConfirmDialog({
         {detail && <p className="muted">{detail}</p>}
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel}>
+            <X size={16} aria-hidden="true" />
             ยกเลิก
           </button>
           <button

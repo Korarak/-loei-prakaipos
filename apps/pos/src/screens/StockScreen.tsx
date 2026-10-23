@@ -1,3 +1,4 @@
+import { ArrowLeftRight, Check, Pencil, Plus, Trash2, X } from 'lucide-react';
 import type { Ingredient } from '@prakaipos/shared';
 import { formatBaht, parseBahtInput } from '@prakaipos/shared';
 import { useState } from 'react';
@@ -49,7 +50,8 @@ export function StockScreen({ shopId, profile }: StockScreenProps) {
       <div className="app__toolbar">
         <div className="app__spacer" />
         <button type="button" className="btn btn--primary" onClick={() => setEditing('new')}>
-          + เพิ่มวัตถุดิบ
+          <Plus size={16} aria-hidden="true" />
+          เพิ่มวัตถุดิบ
         </button>
       </div>
 
@@ -77,9 +79,11 @@ export function StockScreen({ shopId, profile }: StockScreenProps) {
                   </div>
                 </div>
                 <button type="button" className="toggle" onClick={() => setMoving(ing)}>
+                  <ArrowLeftRight size={16} aria-hidden="true" />
                   ปรับสต๊อก
                 </button>
                 <button type="button" className="linkbtn" onClick={() => setEditing(ing)}>
+                  <Pencil size={16} aria-hidden="true" />
                   แก้ไข
                 </button>
                 <button
@@ -87,6 +91,7 @@ export function StockScreen({ shopId, profile }: StockScreenProps) {
                   className="linkbtn linkbtn--danger"
                   onClick={() => setConfirmDelete(ing)}
                 >
+                  <Trash2 size={16} aria-hidden="true" />
                   ลบ
                 </button>
               </li>
@@ -226,9 +231,11 @@ function IngredientDialog({
 
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel}>
+            <X size={16} aria-hidden="true" />
             ยกเลิก
           </button>
           <button type="submit" className="btn btn--primary">
+            <Check size={16} aria-hidden="true" />
             บันทึก
           </button>
         </div>
@@ -301,9 +308,11 @@ function StockMoveDialog({
 
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel}>
+            <X size={16} aria-hidden="true" />
             ยกเลิก
           </button>
           <button type="submit" className="btn btn--primary">
+            <Check size={16} aria-hidden="true" />
             บันทึก
           </button>
         </div>

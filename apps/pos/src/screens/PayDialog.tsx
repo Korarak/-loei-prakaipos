@@ -1,3 +1,4 @@
+import { Banknote, CircleCheck, QrCode, X } from 'lucide-react';
 import type { Order, PaymentMethod } from '@prakaipos/shared';
 import { formatBaht, parseBahtInput } from '@prakaipos/shared';
 import { useState } from 'react';
@@ -143,6 +144,7 @@ export function PayDialog({
             className={method === 'cash' ? 'chip chip--on' : 'chip'}
             onClick={() => setMethod('cash')}
           >
+            <Banknote size={18} aria-hidden="true" />
             เงินสด
           </button>
           <button
@@ -150,6 +152,7 @@ export function PayDialog({
             className={method === 'promptpay' ? 'chip chip--on' : 'chip'}
             onClick={() => setMethod('promptpay')}
           >
+            <QrCode size={18} aria-hidden="true" />
             พร้อมเพย์
           </button>
         </div>
@@ -204,6 +207,7 @@ export function PayDialog({
 
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel} disabled={busy}>
+            <X size={16} aria-hidden="true" />
             ยกเลิก
           </button>
           <button
@@ -212,7 +216,12 @@ export function PayDialog({
             disabled={busy || (method === 'cash' && !enough) || due === 0}
             onClick={() => void confirm()}
           >
-            {busy ? 'กำลังบันทึก…' : 'ปิดบิล'}
+            {busy ? 'กำลังบันทึก…' : (
+              <>
+                <CircleCheck size={18} aria-hidden="true" />
+                ปิดบิล
+              </>
+            )}
           </button>
         </div>
       </div>

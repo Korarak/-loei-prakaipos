@@ -1,6 +1,6 @@
 import type { Order } from '@prakaipos/shared';
 import { formatBaht } from '@prakaipos/shared';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Ban, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { getCredential, type StaffProfile } from '../auth/credentials.js';
 import { ConfirmDialog } from '../components/ConfirmDialog.js';
@@ -283,6 +283,7 @@ export function OrdersScreen({ shopId, shopName, profile, onEditBill }: OrdersSc
 
             <div className="sheet__actions">
               <button type="button" className="btn" onClick={() => setSelected(null)}>
+                <X size={16} aria-hidden="true" />
                 ปิด
               </button>
               {isPrinterSupported() && (
@@ -314,6 +315,7 @@ export function OrdersScreen({ shopId, shopName, profile, onEditBill }: OrdersSc
                   className="btn btn--danger"
                   onClick={() => setConfirmVoid(selected)}
                 >
+                  <Ban size={16} aria-hidden="true" />
                   ยกเลิกบิล
                 </button>
               )}

@@ -1,3 +1,4 @@
+import { Check, KeyRound, Pencil, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 import type { StaffProfile } from '../auth/credentials.js';
 import { ConfirmDialog } from '../components/ConfirmDialog.js';
@@ -60,7 +61,8 @@ export function StaffScreen({ shopId, shopCode, profile }: StaffScreenProps) {
       <div className="app__toolbar">
         <div className="app__spacer" />
         <button type="button" className="btn btn--primary" onClick={() => setEditing('new')}>
-          + เพิ่มพนักงาน
+          <Plus size={16} aria-hidden="true" />
+          เพิ่มพนักงาน
         </button>
       </div>
 
@@ -89,9 +91,11 @@ export function StaffScreen({ shopId, shopCode, profile }: StaffScreenProps) {
                 {!s.active && <span className="badge badge--off">ปิดใช้งานอยู่</span>}
 
                 <button type="button" className="linkbtn" onClick={() => setEditing(s)}>
+                  <Pencil size={16} aria-hidden="true" />
                   แก้ไข
                 </button>
                 <button type="button" className="linkbtn" onClick={() => setResettingPin(s)}>
+                  <KeyRound size={16} aria-hidden="true" />
                   ตั้ง PIN ใหม่
                 </button>
                 {s.id !== profile.staffId && (
@@ -282,9 +286,11 @@ function StaffDialog({
 
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel}>
+            <X size={16} aria-hidden="true" />
             ยกเลิก
           </button>
           <button type="submit" className="btn btn--primary">
+            <Check size={16} aria-hidden="true" />
             บันทึก
           </button>
         </div>
@@ -337,9 +343,11 @@ function ResetPinDialog({
 
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel}>
+            <X size={16} aria-hidden="true" />
             ยกเลิก
           </button>
           <button type="submit" className="btn btn--primary">
+            <Check size={16} aria-hidden="true" />
             บันทึก
           </button>
         </div>

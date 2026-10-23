@@ -1,3 +1,4 @@
+import { Ban, Check, Pencil, Plus, Trash2, X } from 'lucide-react';
 import type {
   Category,
   Ingredient,
@@ -86,7 +87,8 @@ export function MenuScreen({ shopId, profile }: MenuScreenProps) {
             className="btn btn--primary"
             onClick={() => setEditing('new')}
           >
-            + เพิ่มเมนู
+            <Plus size={16} aria-hidden="true" />
+            เพิ่มเมนู
           </button>
         )}
       </div>
@@ -109,7 +111,8 @@ export function MenuScreen({ shopId, profile }: MenuScreenProps) {
                 className="btn btn--primary"
                 onClick={() => setAddingCategory(true)}
               >
-                + เพิ่มหมวด
+                <Plus size={16} aria-hidden="true" />
+                เพิ่มหมวด
               </button>
             )}
           </div>
@@ -141,7 +144,8 @@ export function MenuScreen({ shopId, profile }: MenuScreenProps) {
             style={{ marginTop: 16 }}
             onClick={() => setAddingCategory(true)}
           >
-            + เพิ่มหมวด
+            <Plus size={16} aria-hidden="true" />
+            เพิ่มหมวด
           </button>
         )}
 
@@ -238,18 +242,20 @@ function CategoryBlock({
     <section className="mcat">
       <div className="mcat__head">
         <h2>{category.name}</h2>
-        <span className="mcat__kind">
+        <span className="mcat__kind" data-kind={category.kind}>
           <MenuKindIcon kind={category.kind} size={14} />
           {MENU_KIND_LABEL[category.kind]}
         </span>
         <span className="muted">{items.length} รายการ</span>
         {isOwner && (
           <button type="button" className="linkbtn" onClick={onEditCategory}>
+            <Pencil size={16} aria-hidden="true" />
             แก้หมวด
           </button>
         )}
         {isOwner && items.length === 0 && (
           <button type="button" className="linkbtn linkbtn--danger" onClick={onDeleteCategory}>
+            <Trash2 size={16} aria-hidden="true" />
             ลบหมวด
           </button>
         )}
@@ -289,6 +295,7 @@ function CategoryBlock({
                 className={item.soldOut ? 'toggle toggle--on' : 'toggle'}
                 onClick={() => onToggleSoldOut(item)}
               >
+                {item.soldOut ? <Ban size={14} aria-hidden="true" /> : <Check size={14} aria-hidden="true" />}
                 {item.soldOut ? 'ของหมด' : 'มีของ'}
               </button>
 
@@ -299,6 +306,7 @@ function CategoryBlock({
                     className="linkbtn"
                     onClick={() => onEditItem(item)}
                   >
+                    <Pencil size={16} aria-hidden="true" />
                     แก้ไข
                   </button>
                   <button
@@ -306,6 +314,7 @@ function CategoryBlock({
                     className="linkbtn linkbtn--danger"
                     onClick={() => onDeleteItem(item)}
                   >
+                    <Trash2 size={16} aria-hidden="true" />
                     ลบ
                   </button>
                 </>
@@ -373,9 +382,11 @@ function CategoryDialog({
         </div>
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel}>
+            <X size={16} aria-hidden="true" />
             ยกเลิก
           </button>
           <button type="submit" className="btn btn--primary">
+            <Check size={16} aria-hidden="true" />
             บันทึก
           </button>
         </div>
@@ -536,6 +547,7 @@ function ItemDialog({
 
         <div className="sheet__actions">
           <button type="button" className="btn" onClick={onCancel}>
+            <X size={16} aria-hidden="true" />
             ยกเลิก
           </button>
           <button type="submit" className="btn btn--primary" disabled={optimizingImage}>
@@ -595,6 +607,7 @@ function ModifierGroupsEditor({
               placeholder="ชื่อกลุ่ม เช่น ระดับความเผ็ด"
             />
             <button type="button" className="linkbtn linkbtn--danger" onClick={() => removeGroup(group.id)}>
+              <Trash2 size={16} aria-hidden="true" />
               ลบกลุ่ม
             </button>
           </div>
@@ -650,19 +663,22 @@ function ModifierGroupsEditor({
                   updateGroup(group.id, { options: group.options.filter((o) => o.id !== opt.id) })
                 }
               >
+                <Trash2 size={16} aria-hidden="true" />
                 ลบ
               </button>
             </div>
           ))}
 
           <button type="button" className="linkbtn" onClick={() => addOption(group.id)}>
-            + เพิ่มตัวเลือก
+            <Plus size={16} aria-hidden="true" />
+            เพิ่มตัวเลือก
           </button>
         </div>
       ))}
 
       <button type="button" className="btn" style={{ marginTop: 8 }} onClick={addGroup}>
-        + เพิ่มกลุ่มตัวเลือก
+        <Plus size={16} aria-hidden="true" />
+        เพิ่มกลุ่มตัวเลือก
       </button>
     </div>
   );
@@ -726,13 +742,15 @@ function RecipeEditor({
                   className="modgroup__price"
                 />
                 <button type="button" className="linkbtn linkbtn--danger" onClick={() => removeLine(i)}>
+                  <Trash2 size={16} aria-hidden="true" />
                   ลบ
                 </button>
               </div>
             );
           })}
           <button type="button" className="linkbtn" onClick={addLine}>
-            + เพิ่มวัตถุดิบในสูตร
+            <Plus size={16} aria-hidden="true" />
+            เพิ่มวัตถุดิบในสูตร
           </button>
         </>
       )}

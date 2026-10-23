@@ -1,3 +1,4 @@
+import { RefreshCw } from 'lucide-react';
 import { formatBaht } from '@prakaipos/shared';
 import { useDailySummary } from '../dashboard/useDailySummary.js';
 
@@ -13,6 +14,7 @@ export function DashboardScreen({ shopId }: DashboardScreenProps) {
       <div className="app__toolbar">
         <div className="app__spacer" />
         <button type="button" className="btn" onClick={() => void reload()}>
+          <RefreshCw size={16} aria-hidden="true" />
           รีเฟรช
         </button>
       </div>

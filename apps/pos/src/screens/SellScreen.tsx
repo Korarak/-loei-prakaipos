@@ -1,6 +1,6 @@
 import type { MenuItem, Order, OrderLine, SelectedModifier } from '@prakaipos/shared';
 import { formatBaht, MenuKindIcon, normalizeMenuKind } from '@prakaipos/shared';
-import { ShoppingCart } from 'lucide-react';
+import { Banknote, Check, Minus, Plus, Printer, ShoppingCart, Split, Trash2, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { StaffProfile } from '../auth/credentials.js';
 import type { DeviceInfo } from '../auth/device.js';
@@ -237,6 +237,7 @@ export function SellScreen({
                 setActiveTable(null);
               }}
             >
+              <Trash2 size={16} aria-hidden="true" />
               ล้างบิล
             </button>
           )}
@@ -285,6 +286,7 @@ export function SellScreen({
                       disabled={printing}
                       onClick={() => void printReceipt(o)}
                     >
+                      <Printer size={16} aria-hidden="true" />
                       พิมพ์
                     </button>
                   )}
@@ -326,9 +328,11 @@ export function SellScreen({
                         setEditingNote(null);
                       }}
                     >
+                      <Check size={16} aria-hidden="true" />
                       บันทึก
                     </button>
                     <button type="button" className="linkbtn" onClick={() => setEditingNote(null)}>
+                      <X size={16} aria-hidden="true" />
                       ยกเลิก
                     </button>
                   </div>
@@ -342,7 +346,7 @@ export function SellScreen({
                         aria-label={`ลด ${l.nameSnapshot}`}
                         onClick={() => changeQty(l.clientUuid, l.qty - 1)}
                       >
-                        −
+                        <Minus size={16} aria-hidden="true" />
                       </button>
                       <span className="cline__qty">{l.qty}</span>
                       <button
@@ -351,7 +355,7 @@ export function SellScreen({
                         aria-label={`เพิ่ม ${l.nameSnapshot}`}
                         onClick={() => changeQty(l.clientUuid, l.qty + 1)}
                       >
-                        +
+                        <Plus size={16} aria-hidden="true" />
                       </button>
                       <span className="cline__unit">{formatBaht(l.unitPrice)}/หน่วย</span>
                       <button
@@ -369,6 +373,7 @@ export function SellScreen({
                         className="linkbtn"
                         onClick={() => setCart((c) => reconcileDiscount(removeLine(c, l.clientUuid)))}
                       >
+                        <Trash2 size={16} aria-hidden="true" />
                         ลบ
                       </button>
                     </div>
@@ -403,6 +408,7 @@ export function SellScreen({
               disabled={isEmpty(cart) || activeTable !== null}
               onClick={() => setSplitting(true)}
             >
+              <Split size={16} aria-hidden="true" />
               แยกบิล
             </button>
             <button
@@ -411,6 +417,7 @@ export function SellScreen({
               disabled={isEmpty(cart)}
               onClick={() => setPaying(true)}
             >
+              <Banknote size={18} aria-hidden="true" />
               รับเงิน
             </button>
           </div>

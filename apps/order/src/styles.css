@@ -298,12 +298,20 @@ body {
 }
 
 /* เมนูที่ยังไม่มีรูป — ไอคอนอาหาร/เครื่องดื่มจางๆ กลางกรอบ */
+.item:has(svg[data-kind='food']) .item__media {
+  background: radial-gradient(120% 140% at 30% 20%, color-mix(in srgb, var(--hue-amber) 22%, var(--chip)), var(--chip));
+}
+
+.item:has(svg[data-kind='drink']) .item__media {
+  background: radial-gradient(120% 140% at 30% 20%, color-mix(in srgb, var(--hue-blue) 20%, var(--chip)), var(--chip));
+}
+
 .item__ph {
   position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
-  color: color-mix(in srgb, var(--accent-strong) 30%, var(--line));
+  opacity: 0.75;
 }
 
 /* ของหมด — หรี่เฉพาะรูป/ชื่อ/ราคา ส่วนป้ายคงคอนทราสต์สูงให้อ่านออกแม้ร้านแสงไม่ดี
