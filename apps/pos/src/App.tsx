@@ -30,6 +30,8 @@ import { PrinterScreen } from "./screens/PrinterScreen.js";
 import { SellScreen, type TablePreset } from "./screens/SellScreen.js";
 import { SetupScreen } from "./screens/SetupScreen.js";
 import { StaffScreen } from "./screens/StaffScreen.js";
+import { ShopSettingsScreen } from "./screens/ShopSettingsScreen.js";
+import { TableQrScreen } from "./screens/TableQrScreen.js";
 import { StockScreen } from "./screens/StockScreen.js";
 import { TablesScreen } from "./screens/TablesScreen.js";
 import { refreshShopSettings, type ShopSettings } from "./shop/shopSettings.js";
@@ -45,7 +47,9 @@ type Screen =
   | "printer"
   | "tables"
   | "stock"
-  | "orders";
+  | "orders"
+  | "shop"
+  | "tableqr";
 
 /** ชื่อหน้าที่โชว์แทนชื่อร้านใน header ตอนไม่ได้อยู่หน้าแรก/หน้าขาย */
 const SCREEN_TITLE: Partial<Record<Screen, string>> = {
@@ -56,10 +60,12 @@ const SCREEN_TITLE: Partial<Record<Screen, string>> = {
   stock: "วัตถุดิบและสต๊อก",
   printer: "ตั้งค่าเครื่องพิมพ์",
   orders: "บิลย้อนหลัง",
+  shop: "ตั้งค่าร้าน",
+  tableqr: "QR สั่งอาหารประจำโต๊ะ",
 };
 
 /** หน้าที่ใช้ไม่บ่อย ไม่อยู่ในแถบนำทางล่าง — ต้องมีปุ่มกลับหน้าแรกใน header แทน */
-const BACK_ONLY_SCREENS: Screen[] = ["staff", "stock", "printer", "orders"];
+const BACK_ONLY_SCREENS: Screen[] = ["staff", "stock", "printer", "orders", "shop", "tableqr"];
 
 const NAV_SCREENS: BottomNavScreen[] = ["sell", "tables", "dashboard", "menu"];
 
@@ -262,6 +268,15 @@ function PosShell({
                   />
                 )}
                 {screen === "printer" && <PrinterScreen />}
+                {screen === "shop" && (
+                  <ShopSettingsScreen
+                    shopId={device.shopId}
+                    shop={shop}
+                    onSaved={setShop}
+                    onOpenTableQr={() => setScreen("tableqr")}
+                  />
+                )}
+                {screen === "tableqr" && <TableQrScreen shop={shop} />}
                 {screen === "stock" && (
                   <StockScreen
                     shopId={device.shopId}

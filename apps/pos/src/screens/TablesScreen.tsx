@@ -36,7 +36,7 @@ export function TablesScreen({
   return tableCount === 0 ? (
     <div className="panel">
       <h1>ยังไม่ได้ตั้งจำนวนโต๊ะ</h1>
-      <p className="muted">ให้เจ้าของร้านตั้งค่าจำนวนโต๊ะในหน้า admin ก่อน</p>
+      <p className="muted">ให้เจ้าของร้านตั้งจำนวนโต๊ะที่ หน้าแรก → ตั้งค่าร้าน ก่อน</p>
     </div>
   ) : (
     <div className="tables__grid">

@@ -4,6 +4,7 @@ import {
   Package,
   Printer,
   Receipt,
+  Settings,
   Table2,
   UtensilsCrossed,
   Users,
@@ -27,7 +28,8 @@ export type HomeDestination =
   | 'printer'
   | 'tables'
   | 'stock'
-  | 'orders';
+  | 'orders'
+  | 'shop';
 
 interface HomeScreenProps {
   shopName: string;
@@ -145,6 +147,21 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
             </span>
             <span className="home__name">วัตถุดิบและสต๊อก</span>
             <span className="home__sub">รับเข้า ตัดออก นับสต๊อก คิดต้นทุน</span>
+          </button>
+        )}
+
+        {isOwner && (
+          <button
+            type="button"
+            className="home__card fade-in"
+            style={delay()}
+            onClick={() => onNavigate('shop')}
+          >
+            <span className="icon-tile home__icon" data-hue="blue" aria-hidden="true">
+              <Settings size={22} />
+            </span>
+            <span className="home__name">ตั้งค่าร้าน</span>
+            <span className="home__sub">พร้อมเพย์ จำนวนโต๊ะ QR สั่งอาหาร</span>
           </button>
         )}
 

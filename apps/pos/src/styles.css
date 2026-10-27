@@ -1855,3 +1855,17 @@ button,
   opacity: 0.5;
   cursor: default;
 }
+
+/* ── QR ประจำโต๊ะ (ตั้งค่าร้าน → QR สั่งอาหาร) ── */
+.qrsheet__controls { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end; margin-bottom: 16px; }
+.qrsheet__controls .field { flex: 1 1 280px; margin: 0; }
+.qrsheet { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.qrsheet__card { margin: 0; padding: 12px; text-align: center; background: #fff; color: #000; border: 1px solid #ddd; border-radius: 12px; break-inside: avoid; }
+.qrsheet__card img, .qrsheet__ph { width: 100%; aspect-ratio: 1; }
+.qrsheet__shop { font-weight: 600; }
+.qrsheet__table { font-size: 1.6rem; font-weight: 700; }
+.qrsheet__hint { font-size: 0.85rem; color: #555; }
+@media print {
+  .app__bar, .bottomnav, .updatebar, .qrsheet__controls { display: none !important; }
+  .qrsheet { grid-template-columns: repeat(3, 1fr); }
+}
