@@ -25,3 +25,7 @@ Thumbs.db
 # logs
 *.log
 npm-debug.log*
+
+# VPS handoff (contains secrets)
+*.local.md
+vps-handoff-*.md
