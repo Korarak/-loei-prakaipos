@@ -5,11 +5,14 @@ import {
   Printer,
   Receipt,
   Settings,
+  SlidersHorizontal,
   Table2,
   UtensilsCrossed,
   Users,
 } from 'lucide-react';
+import type { ComponentType } from 'react';
 import type { StaffProfile } from '../auth/credentials.js';
+import { canToggleSimple, homeDestinations, type HomeDestination } from '../ui/simpleMode.js';
 
 /**
  * หน้าแรกหลังล็อกอิน
@@ -20,30 +23,48 @@ import type { StaffProfile } from '../auth/credentials.js';
  * ตอนต้นกะ ไม่ใช่ทุกบิล จึงไม่ได้เพิ่มขั้นตอนตอนขายจริง)
  */
 
-export type HomeDestination =
-  | 'sell'
-  | 'menu'
-  | 'staff'
-  | 'dashboard'
-  | 'printer'
-  | 'tables'
-  | 'stock'
-  | 'orders'
-  | 'shop';
+export type { HomeDestination };
+
+interface Card {
+  name: string;
+  sub: string;
+  hue: string;
+  icon: ComponentType<{ size?: number }>;
+}
+
+const CARDS: Record<HomeDestination, Card> = {
+  sell: { name: 'หน้าขาย', sub: 'เลือกเมนู คิดเงิน รับออร์เดอร์ QR', hue: 'primary', icon: Receipt },
+  dashboard: { name: 'แดชบอร์ด', sub: 'ยอดขายวันนี้ เมนูขายดี', hue: 'green', icon: LayoutDashboard },
+  orders: { name: 'บิลย้อนหลัง', sub: 'ค้นบิลเก่า พิมพ์ซ้ำ ยกเลิกบิล', hue: 'blue', icon: History },
+  tables: { name: 'ผังโต๊ะ', sub: 'ดูโต๊ะว่าง เปิดบิลตามโต๊ะ', hue: 'violet', icon: Table2 },
+  menu: { name: 'จัดการเมนู', sub: 'หมวด เมนู ราคา ของหมด', hue: 'amber', icon: UtensilsCrossed },
+  staff: { name: 'จัดการพนักงาน', sub: 'เพิ่มคน ตั้ง PIN ใหม่ ปิดใช้งาน', hue: 'teal', icon: Users },
+  stock: { name: 'วัตถุดิบและสต๊อก', sub: 'รับเข้า ตัดออก นับสต๊อก คิดต้นทุน', hue: 'pink', icon: Package },
+  shop: { name: 'ตั้งค่าร้าน', sub: 'พร้อมเพย์ จำนวนโต๊ะ QR สั่งอาหาร', hue: 'blue', icon: Settings },
+  printer: { name: 'ตั้งค่าเครื่องพิมพ์', sub: 'จับคู่เครื่องพิมพ์ใบเสร็จของเครื่องนี้', hue: 'slate', icon: Printer },
+};
 
 interface HomeScreenProps {
   shopName: string;
   profile: StaffProfile;
   tablesEnabled: boolean;
+  simple: boolean;
+  onToggleSimple: (on: boolean) => void;
   onNavigate: (dest: HomeDestination) => void;
 }
 
-export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: HomeScreenProps) {
-  const isOwner = profile.role === 'owner';
+export function HomeScreen({
+  shopName,
+  profile,
+  tablesEnabled,
+  simple,
+  onToggleSimple,
+  onNavigate,
+}: HomeScreenProps) {
+  const dests = homeDestinations({ simple, role: profile.role, tablesEnabled });
 
   // ไล่เวลาปรากฏของการ์ดทีละใบเบาๆ — จำกัดไว้ 8 ใบแรก ไม่ให้รู้สึกช้าตอนมีการ์ดเยอะ
-  let i = -1;
-  const delay = () => ({ animationDelay: `${Math.min((i += 1), 7) * 30}ms` });
+  const delay = (i: number) => ({ animationDelay: `${Math.min(i, 7) * 30}ms` });
 
   return (
     <>
@@ -53,130 +74,51 @@ export function HomeScreen({ shopName, profile, tablesEnabled, onNavigate }: Hom
       <h1 className="home__title">จะทำอะไรต่อ</h1>
 
       <div className="home__grid">
-        <button
-          type="button"
-          className="home__card home__card--primary fade-in"
-          style={delay()}
-          onClick={() => onNavigate('sell')}
-        >
-          <span className="icon-tile icon-tile--primary home__icon" aria-hidden="true">
-            <Receipt size={22} />
-          </span>
-          <span className="home__name">หน้าขาย</span>
-          <span className="home__sub">เลือกเมนู คิดเงิน รับออร์เดอร์ QR</span>
-        </button>
+        {dests.map((dest, i) => {
+          const { name, sub, hue, icon: Icon } = CARDS[dest];
+          const primary = hue === 'primary';
+          return (
+            <button
+              key={dest}
+              type="button"
+              className={primary ? 'home__card home__card--primary fade-in' : 'home__card fade-in'}
+              style={delay(i)}
+              onClick={() => onNavigate(dest)}
+            >
+              <span
+                className={primary ? 'icon-tile icon-tile--primary home__icon' : 'icon-tile home__icon'}
+                data-hue={primary ? undefined : hue}
+                aria-hidden="true"
+              >
+                <Icon size={22} />
+              </span>
+              <span className="home__name">{name}</span>
+              <span className="home__sub">{sub}</span>
+            </button>
+          );
+        })}
+      </div>
 
-        <button
-          type="button"
-          className="home__card fade-in"
-          style={delay()}
-          onClick={() => onNavigate('dashboard')}
-        >
-          <span className="icon-tile home__icon" data-hue="green" aria-hidden="true">
-            <LayoutDashboard size={22} />
+      <div className="home__mode">
+        <span className="icon-tile" data-hue="slate" aria-hidden="true">
+          <SlidersHorizontal size={20} />
+        </span>
+        <div className="home__mode-text">
+          <b>{simple ? 'โหมดง่าย: เปิดอยู่' : 'โหมดง่าย: ปิดอยู่'}</b>
+          <span className="hint">
+            {simple
+              ? 'ซ่อนพนักงาน สต๊อก ตั้งค่าร้าน และปุ่มแยกบิล/ส่วนลดในหน้าขาย'
+              : 'ซ่อนเมนูที่ใช้ไม่บ่อย เหลือแต่งานประจำวัน เหมาะกับเครื่องหน้าเคาน์เตอร์'}
           </span>
-          <span className="home__name">แดชบอร์ด</span>
-          <span className="home__sub">ยอดขายวันนี้ เมนูขายดี</span>
-        </button>
-
-        <button
-          type="button"
-          className="home__card fade-in"
-          style={delay()}
-          onClick={() => onNavigate('orders')}
-        >
-          <span className="icon-tile home__icon" data-hue="blue" aria-hidden="true">
-            <History size={22} />
-          </span>
-          <span className="home__name">บิลย้อนหลัง</span>
-          <span className="home__sub">ค้นบิลเก่า พิมพ์ซ้ำ ยกเลิกบิล</span>
-        </button>
-
-        {tablesEnabled && (
-          <button
-            type="button"
-            className="home__card fade-in"
-            style={delay()}
-            onClick={() => onNavigate('tables')}
-          >
-            <span className="icon-tile home__icon" data-hue="violet" aria-hidden="true">
-            <Table2 size={22} />
-            </span>
-            <span className="home__name">ผังโต๊ะ</span>
-            <span className="home__sub">ดูโต๊ะว่าง เปิดบิลตามโต๊ะ</span>
+          {simple && !canToggleSimple(profile.role, true) && (
+            <span className="hint">ให้เจ้าของร้านเข้าระบบเพื่อปิดโหมดนี้</span>
+          )}
+        </div>
+        {canToggleSimple(profile.role, simple) && (
+          <button type="button" className="btn" onClick={() => onToggleSimple(!simple)}>
+            {simple ? 'กลับไปโหมดเต็ม' : 'เปิดโหมดง่าย'}
           </button>
         )}
-
-        <button
-          type="button"
-          className="home__card fade-in"
-          style={delay()}
-          onClick={() => onNavigate('menu')}
-        >
-          <span className="icon-tile home__icon" data-hue="amber" aria-hidden="true">
-            <UtensilsCrossed size={22} />
-          </span>
-          <span className="home__name">จัดการเมนู</span>
-          <span className="home__sub">หมวด เมนู ราคา ของหมด</span>
-        </button>
-
-        {isOwner && (
-          <button
-            type="button"
-            className="home__card fade-in"
-            style={delay()}
-            onClick={() => onNavigate('staff')}
-          >
-            <span className="icon-tile home__icon" data-hue="teal" aria-hidden="true">
-            <Users size={22} />
-            </span>
-            <span className="home__name">จัดการพนักงาน</span>
-            <span className="home__sub">เพิ่มคน ตั้ง PIN ใหม่ ปิดใช้งาน</span>
-          </button>
-        )}
-
-        {isOwner && (
-          <button
-            type="button"
-            className="home__card fade-in"
-            style={delay()}
-            onClick={() => onNavigate('stock')}
-          >
-            <span className="icon-tile home__icon" data-hue="pink" aria-hidden="true">
-            <Package size={22} />
-            </span>
-            <span className="home__name">วัตถุดิบและสต๊อก</span>
-            <span className="home__sub">รับเข้า ตัดออก นับสต๊อก คิดต้นทุน</span>
-          </button>
-        )}
-
-        {isOwner && (
-          <button
-            type="button"
-            className="home__card fade-in"
-            style={delay()}
-            onClick={() => onNavigate('shop')}
-          >
-            <span className="icon-tile home__icon" data-hue="blue" aria-hidden="true">
-              <Settings size={22} />
-            </span>
-            <span className="home__name">ตั้งค่าร้าน</span>
-            <span className="home__sub">พร้อมเพย์ จำนวนโต๊ะ QR สั่งอาหาร</span>
-          </button>
-        )}
-
-        <button
-          type="button"
-          className="home__card fade-in"
-          style={delay()}
-          onClick={() => onNavigate('printer')}
-        >
-          <span className="icon-tile home__icon" data-hue="slate" aria-hidden="true">
-            <Printer size={22} />
-          </span>
-          <span className="home__name">ตั้งค่าเครื่องพิมพ์</span>
-          <span className="home__sub">จับคู่เครื่องพิมพ์ใบเสร็จของเครื่องนี้</span>
-        </button>
       </div>
     </>
   );

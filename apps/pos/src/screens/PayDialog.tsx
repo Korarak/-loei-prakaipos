@@ -19,6 +19,8 @@ interface PayDialogProps {
   shopId: string;
   staffId: string;
   promptpayId: string;
+  /** false = ซ่อนช่องส่วนลด (โหมดง่าย) */
+  allowDiscount?: boolean;
   /** เลขโต๊ะ — มีค่าเมื่อบิลนี้แปลงมาจากออร์เดอร์ QR ของโต๊ะนั้น */
   tableNo?: string;
   /** รอบนั่งที่บิลนี้มาจาก และ id ของออร์เดอร์ QR ต้นทางที่ต้องปิดพร้อมกัน */
@@ -37,6 +39,7 @@ export function PayDialog({
   shopId,
   staffId,
   promptpayId,
+  allowDiscount = true,
   tableNo,
   tableSessionId,
   sourceOrderIds,
@@ -123,6 +126,7 @@ export function PayDialog({
           <b>{formatBaht(due)}</b>
         </div>
 
+        {allowDiscount && (
         <label className="field">
           <span>ส่วนลด (บาท)</span>
           <input
@@ -137,6 +141,7 @@ export function PayDialog({
             </small>
           )}
         </label>
+        )}
 
         <div className="pay__methods">
           <button

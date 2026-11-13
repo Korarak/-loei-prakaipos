@@ -1,6 +1,7 @@
 import type { MenuItem, Order, OrderLine, SelectedModifier } from '@prakaipos/shared';
 import { formatBaht, MenuKindIcon, normalizeMenuKind } from '@prakaipos/shared';
 import { Banknote, Check, Minus, Plus, Printer, ShoppingCart, Split, Trash2, X } from 'lucide-react';
+import { sellFeatures } from '../ui/simpleMode.js';
 import { useEffect, useMemo, useState } from 'react';
 import type { StaffProfile } from '../auth/credentials.js';
 import type { DeviceInfo } from '../auth/device.js';
@@ -54,6 +55,8 @@ interface SellScreenProps {
   device: DeviceInfo;
   profile: StaffProfile;
   promptpayId: string;
+  /** โหมดง่าย — ซ่อนแยกบิล ส่วนลด และราคาต่อหน่วย */
+  simple?: boolean;
   /** ตะกร้าที่ต้องเปิดขึ้นมาจากการรับเงินโต๊ะ QR — ไม่มีค่าสำหรับการขายปกติ */
   tablePreset?: TablePreset | null;
   /** เรียกหลัง seed ตะกร้าจาก tablePreset แล้ว กันไม่ให้ seed ซ้ำ */
@@ -64,9 +67,11 @@ export function SellScreen({
   device,
   profile,
   promptpayId,
+  simple = false,
   tablePreset,
   onTablePresetHandled,
 }: SellScreenProps) {
+  const features = sellFeatures(simple);
   const menu = useMenuData(device.shopId);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [cart, setCart] = useState<CartState>(emptyCart);
@@ -357,7 +362,9 @@ export function SellScreen({
                       >
                         <Plus size={16} aria-hidden="true" />
                       </button>
-                      <span className="cline__unit">{formatBaht(l.unitPrice)}/หน่วย</span>
+                      {features.unitPrice && (
+                        <span className="cline__unit">{formatBaht(l.unitPrice)}/หน่วย</span>
+                      )}
                       <button
                         type="button"
                         className="linkbtn"
@@ -402,15 +409,17 @@ export function SellScreen({
             <b>{formatBaht(total(cart))}</b>
           </div>
           <div className="cart__paybtns">
-            <button
-              type="button"
-              className="btn"
-              disabled={isEmpty(cart) || activeTable !== null}
-              onClick={() => setSplitting(true)}
-            >
-              <Split size={16} aria-hidden="true" />
-              แยกบิล
-            </button>
+            {features.splitBill && (
+              <button
+                type="button"
+                className="btn"
+                disabled={isEmpty(cart) || activeTable !== null}
+                onClick={() => setSplitting(true)}
+              >
+                <Split size={16} aria-hidden="true" />
+                แยกบิล
+              </button>
+            )}
             <button
               type="button"
               className="btn btn--primary btn--pay"
@@ -436,6 +445,7 @@ export function SellScreen({
           shopId={device.shopId}
           staffId={profile.staffId}
           promptpayId={promptpayId}
+          allowDiscount={features.discount || cart.discount > 0}
           tableNo={activeTable?.tableNo}
           tableSessionId={activeTable?.tableSessionId}
           sourceOrderIds={activeTable?.sourceOrderIds}

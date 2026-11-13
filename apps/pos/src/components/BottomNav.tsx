@@ -1,5 +1,6 @@
-import { LayoutDashboard, Receipt, Table2, UtensilsCrossed } from 'lucide-react';
+import { History, LayoutDashboard, Receipt, Table2, UtensilsCrossed } from 'lucide-react';
 import type { ComponentType } from 'react';
+import type { NavScreen } from '../ui/simpleMode.js';
 
 /**
  * แถบนำทางถาวรด้านล่าง — สลับ 4 หน้าหลักได้ในแตะเดียวโดยไม่ต้องกลับหน้าแรกก่อน
@@ -9,23 +10,27 @@ import type { ComponentType } from 'react';
  * ไม่ใส่ไว้ในนี้ ไม่ให้แถบรกและกดพลาดง่ายขึ้น
  */
 
-export type BottomNavScreen = 'sell' | 'tables' | 'dashboard' | 'menu';
+export type BottomNavScreen = NavScreen;
 
 const ITEMS: { screen: BottomNavScreen; label: string; hue: string; icon: ComponentType<{ size?: number }> }[] = [
   { screen: 'sell', hue: 'accent', label: 'ขาย', icon: Receipt },
   { screen: 'tables', hue: 'violet', label: 'โต๊ะ', icon: Table2 },
   { screen: 'dashboard', hue: 'green', label: 'แดชบอร์ด', icon: LayoutDashboard },
   { screen: 'menu', hue: 'amber', label: 'เมนู', icon: UtensilsCrossed },
+  { screen: 'orders', hue: 'blue', label: 'บิล', icon: History },
 ];
 
 interface BottomNavProps {
   active: BottomNavScreen | null;
-  tablesEnabled: boolean;
+  /** หน้าที่โชว์ในแถบ ตามลำดับ — มาจาก navScreens() ของโหมดปัจจุบัน */
+  screens: BottomNavScreen[];
   onNavigate: (screen: BottomNavScreen) => void;
 }
 
-export function BottomNav({ active, tablesEnabled, onNavigate }: BottomNavProps) {
-  const items = ITEMS.filter((item) => item.screen !== 'tables' || tablesEnabled);
+export function BottomNav({ active, screens, onNavigate }: BottomNavProps) {
+  const items = screens
+    .map((s) => ITEMS.find((i) => i.screen === s))
+    .filter((i): i is (typeof ITEMS)[number] => i !== undefined);
 
   return (
     <nav className="bottomnav">

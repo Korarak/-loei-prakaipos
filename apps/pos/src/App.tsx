@@ -35,21 +35,14 @@ import { TableQrScreen } from "./screens/TableQrScreen.js";
 import { StockScreen } from "./screens/StockScreen.js";
 import { TablesScreen } from "./screens/TablesScreen.js";
 import { refreshShopSettings, type ShopSettings } from "./shop/shopSettings.js";
+import {
+  loadSimpleMode,
+  navScreens,
+  resolveScreen,
+  saveSimpleMode,
+  type Screen,
+} from "./ui/simpleMode.js";
 import { useSync } from "./sync/useSync.js";
-
-/** หน้าจอที่เปิดอยู่หลังเข้าระบบแล้ว */
-type Screen =
-  | "home"
-  | "sell"
-  | "menu"
-  | "staff"
-  | "dashboard"
-  | "printer"
-  | "tables"
-  | "stock"
-  | "orders"
-  | "shop"
-  | "tableqr";
 
 /** ชื่อหน้าที่โชว์แทนชื่อร้านใน header ตอนไม่ได้อยู่หน้าแรก/หน้าขาย */
 const SCREEN_TITLE: Partial<Record<Screen, string>> = {
@@ -66,8 +59,6 @@ const SCREEN_TITLE: Partial<Record<Screen, string>> = {
 
 /** หน้าที่ใช้ไม่บ่อย ไม่อยู่ในแถบนำทางล่าง — ต้องมีปุ่มกลับหน้าแรกใน header แทน */
 const BACK_ONLY_SCREENS: Screen[] = ["staff", "stock", "printer", "orders", "shop", "tableqr"];
-
-const NAV_SCREENS: BottomNavScreen[] = ["sell", "tables", "dashboard", "menu"];
 
 /**
  * ลำดับหน้าจอ
@@ -134,7 +125,8 @@ function PosShell({
 }) {
   const sync = useSync();
   const incoming = useIncomingOrders(device.shopId);
-  const [screen, setScreen] = useState<Screen>("home");
+  const [requested, setScreen] = useState<Screen>("home");
+  const [simple, setSimple] = useState(() => loadSimpleMode());
   const [shop, setShop] = useState<ShopSettings | null>(null);
   const [tablePreset, setTablePreset] = useState<TablePreset | null>(null);
 
@@ -187,6 +179,18 @@ function PosShell({
   }, [device.shopId]);
 
   const tablesEnabled = !!shop?.tablesEnabled && (shop?.tableCount ?? 0) > 0;
+  // กันค้างอยู่หน้าที่โหมดง่ายซ่อนไว้ (เช่น เจ้าของเปิดโหมดง่ายตอนอยู่ในหน้าอื่น)
+  const screen = resolveScreen(requested, {
+    simple,
+    role: session.profile.role,
+    tablesEnabled,
+  });
+  const navItems = navScreens({ simple, tablesEnabled });
+  function toggleSimple(on: boolean) {
+    setSimple(on);
+    saveSimpleMode(on);
+    setScreen("home");
+  }
   const backOnly = BACK_ONLY_SCREENS.includes(screen);
 
   return (
@@ -229,6 +233,7 @@ function PosShell({
               device={device}
               profile={session.profile}
               promptpayId={shop?.promptpayId ?? ""}
+              simple={simple}
               tablePreset={tablePreset}
               onTablePresetHandled={() => setTablePreset(null)}
             />
@@ -240,6 +245,8 @@ function PosShell({
                     shopName={device.shopName}
                     profile={session.profile}
                     tablesEnabled={tablesEnabled}
+                    simple={simple}
+                    onToggleSimple={toggleSimple}
                     onNavigate={(dest) => setScreen(dest)}
                   />
                 )}
@@ -307,11 +314,11 @@ function PosShell({
 
         <BottomNav
           active={
-            NAV_SCREENS.includes(screen as BottomNavScreen)
+            navItems.includes(screen as BottomNavScreen)
               ? (screen as BottomNavScreen)
               : null
           }
-          tablesEnabled={tablesEnabled}
+          screens={navItems}
           onNavigate={setScreen}
         />
       </div>
